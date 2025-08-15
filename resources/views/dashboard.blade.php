@@ -10,15 +10,15 @@
             {{ __("You're logged in!") }}
 
             {{-- Display Ads --}}
-            @if($ads->isNotEmpty())
+            {{-- @if($ads->isNotEmpty())
                 <div class="mt-8">
                     <h3 class="text-lg font-semibold mb-4">Sponsored Ads</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         @foreach($ads as $ad)
                             <div>
-                                <x-ads.display-ad :ad="$ad" />
+                                {{-- <x-ads.display-ad :ad="$ad" /> --}}
 
-                                <div class="mt-1 text-xs text-gray-500 text-center font-mono">
+                                {{-- <div class="mt-1 text-xs text-gray-500 text-center font-mono">
                                     @if($ad->start_at)
                                         <span>Start: {{ \Carbon\Carbon::parse($ad->start_at)->format('M d, Y') }}</span>
                                     @endif
@@ -30,9 +30,9 @@
                         @endforeach
                     </div>
                 </div>
-            @else
-                <div class="mt-8 text-gray-500 italic">No ads available currently.</div>
-            @endif
+            @else  --}}
+                {{-- <div class="mt-8 text-gray-500 italic">No ads available currently.</div>
+            @endif --}}
         </div>
     </div>
 </x-app-layout>

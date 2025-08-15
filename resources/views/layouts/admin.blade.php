@@ -10,6 +10,9 @@
     <!-- Bootstrap Icons CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -140,7 +143,8 @@
             <!-- Content -->
             <main class="flex-1 p-4 lg:p-6 bg-gray-50">
                 <div class="max-w-7xl mx-auto">
-                    {{ $slot }}
+                    @yield('content')
+
                 </div>
             </main>
         </div>

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SubscriberController;
 use App\Models\Ad;
 use Illuminate\Support\Carbon;
+use App\Http\Controllers\Api\AdApiController;
 
 
 Route::get('/', function () {
@@ -75,7 +76,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 
-// Public Product Routes (using Admin\ProductController)
+// Ad tracking routes
+Route::prefix('ads')->group(function () {
+    Route::post('/track/view', [AdController::class, 'trackView']);
+    Route::post('/track/click', [AdController::class, 'trackClick']);
+    Route::post('/track/close', [AdController::class, 'trackClose']);
+    Route::post('/track/page-visit', [AdApiController::class, 'trackPageVisit']);
+    Route::post('/track/time-spent', [AdApiController::class, 'trackTimeSpent']);
+    
+    Route::get('/placement/{placement}', [AdController::class, 'getAdsForPlacement']);
+    Route::get('/analytics', [AdController::class, 'analytics']);
+});
+
+
+
 // Public Product Routes (using Admin\ProductController)
 Route::controller(\App\Http\Controllers\Admin\ProductController::class)->group(function () {
     Route::get('/products', 'publicIndex')->name('products.index');

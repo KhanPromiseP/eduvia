@@ -1,4 +1,6 @@
-<x-admin-layout>
+@extends('layouts.admin')
+
+@section('content')
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Create New Product') }}
@@ -120,4 +122,4 @@
             </div>
         </div>
     </div>
-</x-admin-layout>
+@endsection

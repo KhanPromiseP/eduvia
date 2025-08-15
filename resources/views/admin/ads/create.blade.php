@@ -1,384 +1,259 @@
-<x-admin-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800">
-            Create New Ad
-        </h2>
-    </x-slot>
+@extends('layouts.admin')
 
-    {{-- Alpine.js for live preview --}}
-    <div x-data="adForm()" class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-        <form
-            action="{{ route('admin.ads.store') }}"
-            method="POST"
-            class="space-y-6 bg-white p-6 rounded shadow"
-            @submit.prevent="submitForm"
-        >
-            @csrf
+@section('content')
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">Create New Ad</h1>
+            
+            <form action="{{ route('admin.ads.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                @csrf
+                
+                {{-- Basic Information --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Ad Title</label>
+                        <input type="text" id="title" name="title" value="{{ old('title') }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               required>
+                        @error('title')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-2">Ad Type</label>
+                        <select id="type" name="type" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                required>
+                            <option value="">Select Ad Type</option>
+                            @foreach($adTypes as $value => $label)
+                                <option value="{{ $value }}" {{ old('type') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('type')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
 
-            {{-- User --}}
-            <div>
-                <label for="user_id" class="block text-sm font-medium text-gray-700">
-                    Creator (User) <span class="text-red-500">*</span>
-                </label>
-                <select
-                    name="user_id"
-                    id="user_id"
-                    x-model="form.user_id"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                    <option value="">-- Select User --</option>
-                    @foreach($users as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                    @endforeach
-                </select>
-                <p class="mt-1 text-xs text-gray-500">
-                    Select the user who will be credited as the ad creator.
-                </p>
-                @error('user_id')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
+                {{-- User and Product --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-2">Advertiser</label>
+                        <select id="user_id" name="user_id" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                required>
+                            <option value="">Select Advertiser</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }} ({{ $user->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('user_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    
+                    <div>
+                        <label for="product_id" class="block text-sm font-medium text-gray-700 mb-2">Product (Optional)</label>
+                        <select id="product_id" name="product_id" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Product</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>
+                                    {{ $product->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('product_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
 
-            {{-- Product --}}
-            <div>
-                <label for="product_id" class="block text-sm font-medium text-gray-700">
-                    Related Product (optional)
-                </label>
-                <select
-                    name="product_id"
-                    id="product_id"
-                    x-model="form.product_id"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                    <option value="">-- None --</option>
-                    @foreach($products as $product)
-                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                    @endforeach
-                </select>
-                <p class="mt-1 text-xs text-gray-500">
-                    Associate this ad with a product if relevant (optional).
-                </p>
-                @error('product_id')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Title --}}
-            <div>
-                <label for="title" class="block text-sm font-medium text-gray-700">
-                    Title <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="text"
-                    name="title"
-                    id="title"
-                    x-model="form.title"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Summer Sale Banner"
-                    required
-                >
-                <p class="mt-1 text-xs text-gray-500">
-                    Give your ad a clear, descriptive title (max 255 characters).
-                </p>
-                @error('title')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Type --}}
-            <div>
-                <label for="type" class="block text-sm font-medium text-gray-700">
-                    Type <span class="text-red-500">*</span>
-                </label>
-                <select
-                    name="type"
-                    id="type"
-                    x-model="form.type"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    required
-                >
-                    <option value="">-- Select Type --</option>
-                    @foreach(['image', 'video', 'banner', 'js', 'popup', 'persistent', 'interstitial'] as $type)
-                        <option value="{{ $type }}">{{ ucfirst($type) }}</option>
-                    @endforeach
-                </select>
-                <p class="mt-1 text-xs text-gray-500">
-                    Choose how the ad will be displayed.  
-                    <br>
-                    <strong>Image:</strong> A static image (recommended size 728x90 or 300x250 px).  
-                    <br>
-                    <strong>Video:</strong> MP4 video URL or path.  
-                    <br>
-                    <strong>Banner:</strong> Custom HTML or image banner.  
-                    <br>
-                    <strong>JS:</strong> JavaScript code snippet for advanced ads.  
-                    <br>
-                    <strong>Popup/Interstitial:</strong> Modal ads that overlay the page.
-                </p>
-                @error('type')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Content --}}
-            <div>
-                <label for="content" class="block text-sm font-medium text-gray-700">
-                    Content (URL, JS code, or media path) <span class="text-red-500">*</span>
-                </label>
-                <textarea
-                    name="content"
-                    id="content"
-                    x-model="form.content"
-                    rows="4"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="For images/videos: enter the full URL or relative path.  
-For JS: enter your JavaScript code here.  
-For banner: paste your HTML content."
-                    required
-                ></textarea>
-                <p class="mt-1 text-xs text-gray-500 whitespace-pre-line">
-                    Examples:  
-                    - Image: https://example.com/banner.jpg  
-                    - Video: https://example.com/video.mp4  
-                    - JS: &lt;script&gt;alert('Hello')&lt;/script&gt;  
-                    - Banner: &lt;div style='background:#eee;padding:10px;'&gt;Your Banner&lt;/div&gt;
-                </p>
-                @error('content')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Link --}}
-            <div>
-                <label for="link" class="block text-sm font-medium text-gray-700">
-                    Link (optional)
-                </label>
-                <input
-                    type="url"
-                    name="link"
-                    id="link"
-                    x-model="form.link"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="https://example.com"
-                >
-                <p class="mt-1 text-xs text-gray-500">
-                    Optional: Add a target URL so users click through the ad.
-                </p>
-                @error('link')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Start At --}}
-            <div>
-                <label for="start_at" class="block text-sm font-medium text-gray-700">
-                    Start Date (optional)
-                </label>
-                <input
-                    type="date"
-                    name="start_at"
-                    id="start_at"
-                    x-model="form.start_at"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                <p class="mt-1 text-xs text-gray-500">
-                    Optional: The date from which the ad becomes active. Leave empty for immediate activation.
-                </p>
-                @error('start_at')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- End At --}}
-            <div>
-                <label for="end_at" class="block text-sm font-medium text-gray-700">
-                    End Date (optional)
-                </label>
-                <input
-                    type="date"
-                    name="end_at"
-                    id="end_at"
-                    x-model="form.end_at"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                <p class="mt-1 text-xs text-gray-500">
-                    Optional: The date the ad will expire. Must be on or after start date.
-                </p>
-                @error('end_at')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Is Active --}}
-            <div class="flex items-center space-x-2">
-                <input
-                    type="checkbox"
-                    name="is_active"
-                    id="is_active"
-                    x-model="form.is_active"
-                    value="1"
-                    class="rounded text-blue-600 border-gray-300 focus:ring-blue-500"
-                    checked
-                >
-                <label for="is_active" class="block text-sm font-medium text-gray-700">
-                    Is Active?
-                </label>
-                <p class="text-xs text-gray-500 ml-8">
-                    Check to enable the ad immediately upon saving.
-                </p>
-                @error('is_active')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Placement --}}
-            <div>
-                <label for="placement" class="block text-sm font-medium text-gray-700">
-                    Placement (optional)
-                </label>
-                <input
-                    type="text"
-                    name="placement"
-                    id="placement"
-                    x-model="form.placement"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., header, sidebar, specific-page:/about"
-                >
-                <p class="mt-1 text-xs text-gray-500">
-                    Optional placement hints for where to show the ad on the site.
-                </p>
-                @error('placement')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Targeting --}}
-            <div>
-                <label for="targeting" class="block text-sm font-medium text-gray-700">
-                    Targeting (JSON format, optional)
-                </label>
-                <textarea
-                    name="targeting"
-                    id="targeting"
-                    x-model="form.targeting"
-                    rows="3"
-                    class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder='{"devices": ["mobile"], "countries": ["US"], "locations": ["sitewide"]}'
-                ></textarea>
-                <p class="mt-1 text-xs text-gray-500 whitespace-pre-line">
-                    Optional JSON rules to target ads, e.g.:  
-                    {  
-                    &nbsp;&nbsp;"devices": ["mobile", "desktop"],  
-                    &nbsp;&nbsp;"countries": ["US", "GB"],  
-                    &nbsp;&nbsp;"locations": ["homepage", "product-page"]  
-                    }
-                </p>
-                @error('targeting')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Is Random --}}
-            <div class="flex items-center space-x-2">
-                <input
-                    type="checkbox"
-                    name="is_random"
-                    id="is_random"
-                    x-model="form.is_random"
-                    value="1"
-                    class="rounded text-blue-600 border-gray-300 focus:ring-blue-500"
-                >
-                <label for="is_random" class="block text-sm font-medium text-gray-700">
-                    Random Placement?
-                </label>
-                <p class="text-xs text-gray-500 ml-8">
-                    Check if you want the ad to appear randomly among others in its placement.
-                </p>
-                @error('is_random')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            {{-- Buttons --}}
-            <div class="flex items-center space-x-4 pt-4">
-                <button
-                    type="submit"
-                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    <i class="bi bi-check2-circle me-2"></i> Create Ad
-                </button>
-
-                <a
-                    href="{{ route('admin.ads.index') }}"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-gray-700 hover:bg-gray-100"
-                >
-                    <i class="bi bi-x-circle me-2"></i> Cancel
-                </a>
-            </div>
-        </form>
-
-        {{-- Live Preview --}}
-        <section class="mt-10 bg-gray-50 p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">Live Preview</h3>
-
-            <template x-if="form.type === 'image'">
+                {{-- Content --}}
                 <div>
-                    <img :src="form.content" :alt="form.title" class="max-w-full rounded shadow" />
-                    <p class="mt-2 text-sm text-gray-600" x-text="form.title"></p>
+                    <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Ad Content</label>
+                    <div id="content-help" class="text-sm text-gray-500 mb-2">
+                        For image ads: Enter image URL or upload file<br>
+                        For video ads: Enter video URL<br>
+                        For banner/JS ads: Enter HTML/JavaScript code
+                    </div>
+                    <textarea id="content" name="content" rows="6" 
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                              required>{{ old('content') }}</textarea>
+                    @error('content')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
-            </template>
 
-            <template x-if="form.type === 'video'">
-                <video controls class="w-full max-w-lg rounded shadow">
-                    <source :src="form.content" type="video/mp4" />
-                    Your browser does not support the video tag.
-                </video>
-                <p class="mt-2 text-sm text-gray-600" x-text="form.title"></p>
-            </template>
-
-            <template x-if="form.type === 'banner'">
-                <div class="p-4 bg-white rounded shadow border" x-html="form.content"></div>
-            </template>
-
-            <template x-if="form.type === 'js'">
-                <pre class="bg-gray-200 p-4 rounded text-xs overflow-auto" x-text="form.content"></pre>
-            </template>
-
-            <template x-if="form.type === 'popup' || form.type === 'interstitial'">
-                <div class="p-4 bg-indigo-50 rounded shadow border italic text-gray-700">
-                    Popup or Interstitial ads will appear as overlays after submission.
+                {{-- Link and Placement --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="link" class="block text-sm font-medium text-gray-700 mb-2">Target URL (Optional)</label>
+                        <input type="url" id="link" name="link" value="{{ old('link') }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               placeholder="https://example.com">
+                        @error('link')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    
+                    <div>
+                        <label for="placement" class="block text-sm font-medium text-gray-700 mb-2">Placement</label>
+                        <select id="placement" name="placement" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Any Placement</option>
+                            @foreach($placements as $value => $label)
+                                <option value="{{ $value }}" {{ old('placement') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('placement')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
-            </template>
 
-            <template x-if="!form.type">
-                <div class="italic text-gray-400">Select a type to preview your ad here.</div>
-            </template>
-        </section>
+                {{-- Schedule --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="start_at" class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                        <input type="datetime-local" id="start_at" name="start_at" value="{{ old('start_at') }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        @error('start_at')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    
+                    <div>
+                        <label for="end_at" class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                        <input type="datetime-local" id="end_at" name="end_at" value="{{ old('end_at') }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        @error('end_at')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- Advanced Options --}}
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Advanced Options</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="weight" class="block text-sm font-medium text-gray-700 mb-2">Weight (1-10)</label>
+                            <input type="number" id="weight" name="weight" min="1" max="10" value="{{ old('weight', 1) }}" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">Higher weight = more likely to be shown</p>
+                        </div>
+                        
+                        <div>
+                            <label for="max_impressions" class="block text-sm font-medium text-gray-700 mb-2">Max Impressions</label>
+                            <input type="number" id="max_impressions" name="max_impressions" min="0" value="{{ old('max_impressions') }}" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">Leave empty for unlimited</p>
+                        </div>
+                        
+                        <div>
+                            <label for="max_clicks" class="block text-sm font-medium text-gray-700 mb-2">Max Clicks</label>
+                            <input type="number" id="max_clicks" name="max_clicks" min="0" value="{{ old('max_clicks') }}" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">Leave empty for unlimited</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Targeting --}}
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Targeting Options</h3>
+                    
+                    <div>
+                        <label for="targeting" class="block text-sm font-medium text-gray-700 mb-2">Targeting JSON</label>
+                        <textarea id="targeting" name="targeting" rows="4" 
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                                  placeholder='{"device": "mobile", "hours": [9,10,11,12,13,14,15,16,17], "urls": ["/products", "/categories"]}'>{{ old('targeting') }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">
+                            Example targeting options: device (mobile/tablet/desktop), hours (0-23), urls (path patterns)
+                        </p>
+                        @error('targeting')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- Status Options --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="is_active" name="is_active" value="1" 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
+                               {{ old('is_active') ? 'checked' : '' }}>
+                        <label for="is_active" class="ml-2 block text-sm text-gray-900">
+                            Active
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="is_random" name="is_random" value="1" 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
+                               {{ old('is_random') ? 'checked' : '' }}>
+                        <label for="is_random" class="ml-2 block text-sm text-gray-900">
+                            Random Display
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Submit Buttons --}}
+                <div class="flex justify-end space-x-4 pt-6 border-t">
+                    <a href="{{ route('admin.ads.index') }}" 
+                       class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        Create Ad
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    <script>
-        function adForm() {
-            return {
-                form: {
-                    user_id: '{{ old('user_id') }}' || '',
-                    product_id: '{{ old('product_id') }}' || '',
-                    title: '{{ old('title') }}' || '',
-                    type: '{{ old('type') }}' || '',
-                    content: `{{ old('content') ?? '' }}`,
-                    link: '{{ old('link') }}' || '',
-                    start_at: '{{ old('start_at') }}' || '',
-                    end_at: '{{ old('end_at') }}' || '',
-                    is_active: {{ old('is_active', true) ? 'true' : 'false' }},
-                    placement: '{{ old('placement') }}' || '',
-                    targeting: `{{ old('targeting') ?? '' }}`,
-                    is_random: {{ old('is_random') ? 'true' : 'false' }},
-                },
-                submitForm() {
-                    // Disable form if you want; here just submit normally:
-                    $el = event.target;
-                    $el.submit();
-                }
-            };
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // JSON validation for targeting field
+    const targetingField = document.getElementById('targeting');
+    targetingField.addEventListener('blur', function() {
+        if (this.value.trim()) {
+            try {
+                JSON.parse(this.value);
+                this.classList.remove('border-red-300');
+                this.classList.add('border-green-300');
+            } catch (e) {
+                this.classList.remove('border-green-300');
+                this.classList.add('border-red-300');
+            }
         }
-    </script>
-</x-admin-layout>
+    });
+
+    // Dynamic content help based on ad type
+    const typeField = document.getElementById('type');
+    const contentHelp = document.getElementById('content-help');
+    
+    typeField.addEventListener('change', function() {
+        const helpTexts = {
+            'image': 'Enter the image URL (e.g., https://example.com/image.jpg)',
+            'video': 'Enter the video URL (e.g., https://example.com/video.mp4)',
+            'banner': 'Enter HTML code for the banner advertisement',
+            'js': 'Enter JavaScript code for the advertisement',
+            'popup': 'Enter HTML content for the popup advertisement',
+            'persistent': 'Enter HTML content for the persistent bottom banner',
+            'interstitial': 'Enter HTML content for the full-screen advertisement'
+        };
+        
+        contentHelp.textContent = helpTexts[this.value] || 'Enter the appropriate content for your ad type';
+    });
+});
+</script>
+@endsection

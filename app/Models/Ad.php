@@ -1,19 +1,21 @@
 <?php
 
+// Update your App\Models\Ad.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ad extends Model
 {
     use HasFactory;
 
-    // Allow mass assignment on these fields
     protected $fillable = [
         'user_id',
-        'product_id',
+        'product_id', 
         'title',
         'type',
         'content',
@@ -24,147 +26,174 @@ class Ad extends Model
         'placement',
         'targeting',
         'is_random',
+        'weight',
+        'budget',
+        'max_impressions',
+        'max_clicks',
     ];
 
-    // Cast types (targeting is json, timestamps are Carbon instances)
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'is_active' => 'boolean',
-        'targeting' => 'array',
         'is_random' => 'boolean',
+        'targeting' => 'json',
+        'weight' => 'integer',
+        'budget' => 'decimal:2',
+        'max_impressions' => 'integer',
+        'max_clicks' => 'integer',
     ];
 
-    /*
-     * Relationships
+    /**
+     * Scope for active ads
      */
-
-    // Creator user of the ad
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    // Optional related product (nullable)
-    public function product()
-    {
-        return $this->belongsTo(Product::class)->withDefault();
-    }
-
-    /*
-     * Scopes for query filtering
-     */
-
-    // Only ads marked as active
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    // Ads that are currently within the start and end date range
+    /**
+     * Scope for currently running ads (within date range)
+     */
     public function scopeCurrentlyRunning($query)
     {
-        $now = Carbon::now();
-
-        return $query->where(function ($q) use ($now) {
-            $q->whereNull('start_at')->orWhere('start_at', '<=', $now);
-        })->where(function ($q) use ($now) {
-            $q->whereNull('end_at')->orWhere('end_at', '>=', $now);
+        return $query->where(function($q) {
+            $q->whereNull('start_at')
+              ->orWhere('start_at', '<=', now());
+        })->where(function($q) {
+            $q->whereNull('end_at')
+              ->orWhere('end_at', '>=', now());
         });
     }
 
-    // Scope for filtering by placement string (exact or partial match)
-    public function scopePlacement($query, string $placement)
+    /**
+     * Scope for ads by placement
+     */
+    public function scopeForPlacement($query, $placement)
     {
-        return $query->where('placement', $placement);
+        return $query->where(function($q) use ($placement) {
+            $q->where('placement', $placement)
+              ->orWhere('placement', 'any')
+              ->orWhereNull('placement');
+        });
     }
 
-    /*
-     * Helper methods
+    /**
+     * Get ads that should be displayed (active and within date range)
      */
-
-    // Check if ad is currently active based on is_active and date range
-    public function isCurrentlyActive(): bool
+    public function scopeDisplayable($query)
     {
-        if (! $this->is_active) {
-            return false;
+        return $query->active()->currentlyRunning();
+    }
+
+    /**
+     * Relationships
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function views(): HasMany
+    {
+        return $this->hasMany(AdView::class);
+    }
+
+    public function clicks(): HasMany
+    {
+        return $this->hasMany(AdClick::class);
+    }
+
+    public function timeSpent(): HasMany
+    {
+        return $this->hasMany(AdTimeSpent::class);
+    }
+
+    /**
+     * Get formatted targeting rules
+     */
+    public function getFormattedTargetingAttribute(): string
+    {
+        if (!$this->targeting) {
+            return 'No targeting';
         }
 
-        $now = Carbon::now();
-
-        if ($this->start_at && $this->start_at->isFuture()) {
-            return false;
+        $rules = [];
+        foreach ($this->targeting as $key => $value) {
+            if (is_array($value)) {
+                $rules[] = ucfirst($key) . ': ' . implode(', ', $value);
+            } else {
+                $rules[] = ucfirst($key) . ': ' . $value;
+            }
         }
 
-        if ($this->end_at && $this->end_at->isPast()) {
-            return false;
+        return implode(' | ', $rules);
+    }
+
+    /**
+     * Check if ad should be displayed based on targeting
+     */
+    public function shouldDisplay($userAgent = null, $currentHour = null, $referrer = null): bool
+    {
+        if (!$this->targeting) {
+            return true;
         }
+
+        // Device targeting
+        if (isset($this->targeting['device'])) {
+            $isMobile = $userAgent ? $this->isMobileDevice($userAgent) : false;
+            $targetDevice = $this->targeting['device'];
+            
+            if (($targetDevice === 'mobile' && !$isMobile) || 
+                ($targetDevice === 'desktop' && $isMobile)) {
+                return false;
+            }
+        }
+
+        // Time targeting
+        if (isset($this->targeting['hours']) && $currentHour !== null) {
+            if (!in_array($currentHour, $this->targeting['hours'])) {
+                return false;
+            }
+        }
+
+        // Add more targeting logic as needed
 
         return true;
     }
 
-    // Get targeting info with safe defaults
-    public function getTargetingDevices(): array
+    /**
+     * Check if device is mobile
+     */
+    private function isMobileDevice(string $userAgent): bool
     {
-        return $this->targeting['devices'] ?? [];
+        return preg_match('/Mobile|Android|iPhone|iPad/', $userAgent) === 1;
     }
 
-    public function getTargetingCountries(): array
+    /**
+     * Get status for display
+     */
+    public function getStatusAttribute(): string
     {
-        return $this->targeting['countries'] ?? [];
+        if (!$this->is_active) {
+            return 'inactive';
+        }
+
+        if ($this->start_at && $this->start_at->isFuture()) {
+            return 'scheduled';
+        }
+
+        if ($this->end_at && $this->end_at->isPast()) {
+            return 'expired';
+        }
+
+        return 'active';
     }
-
-    public function getTargetingLocations(): array
-    {
-        return $this->targeting['locations'] ?? [];
-    }
-
-
-//     public function analytics()
-// {
-//     return $this->hasMany(Analytics::class);
-// }
-
-// public function views()
-// {
-//     return $this->analytics()->where('event_type', 'view');
-// }
-
-// public function clicks()
-// {
-//     return $this->analytics()->where('event_type', 'click');
-// }
-
-// public function impressions()
-// {
-//     return $this->analytics()->where('event_type', 'impression');
-// }
-
-//     public function getTotalViewsAttribute()
-//     {
-//         return $this->views()->count();
-//     }
-
-//     public function getTotalClicksAttribute()
-//     {
-//         return $this->clicks()->count();
-//     }
-
-//     public function getTotalImpressionsAttribute()
-//     {
-//         return $this->impressions()->count();
-//     }
-//     public function getAverageViewDurationAttribute()
-//     {
-//         return $this->views()->avg('duration') ?? 0;
-//     }
-
-//     public function getClickThroughRateAttribute()
-//     {
-//         $impressions = $this->getTotalImpressionsAttribute();
-//         $clicks = $this->getTotalClicksAttribute();
-//         return $impressions > 0 ? ($clicks / $impressions) * 100 : 0;
-//     }
-    
-
 }
+
+?>
