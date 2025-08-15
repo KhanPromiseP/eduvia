@@ -115,6 +115,17 @@ class Ad extends Model
     }
 
     /**
+     * Scope for admin view — show all ads, regardless of status/date
+     */
+    public function scopeForAdmin($query)
+    {
+        return $query; // no filters for admin view
+    }
+
+
+
+
+    /**
      * Get formatted targeting rules
      */
     public function getFormattedTargetingAttribute(): string

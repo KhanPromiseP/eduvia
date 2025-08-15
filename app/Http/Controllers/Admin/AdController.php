@@ -19,12 +19,10 @@ use Illuminate\Support\Facades\Log;
 
 class AdController extends Controller
 {
-    /**
-     * Display a listing of ads with flexible filtering and pagination.
-     */
 public function index(Request $request)
 {
-    $ads = Ad::query();
+    // Base query with eager loading
+    $ads = Ad::with(['user', 'product'])->forAdmin();
 
     // Filters
     if ($status = $request->status) {
@@ -39,7 +37,7 @@ public function index(Request $request)
         $ads->where('weight', $weight);
     }
 
-    if ($isRandom = $request->is_random) {
+    if ($request->has('is_random') && $request->is_random) {
         $ads->where('is_random', true);
     }
 
@@ -52,43 +50,46 @@ public function index(Request $request)
     }
 
     if ($type = $request->type) {
-        $ads->where('type', $type);
+        if ($type !== 'all') {
+            $ads->where('type', $type);
+        }
     }
 
     if ($placement = $request->placement) {
-        $ads->where('placement', $placement);
+        if ($placement !== 'any') {
+            $ads->where('placement', $placement);
+        }
     }
 
+    // Paginate after all filters
     $ads = $ads->paginate(15)->withQueryString();
 
-    // Pass filter options
+    // Filter options
     $placements = [
-        'header' => 'Header',
-        'sidebar' => 'Sidebar',
-        'footer' => 'Footer',
-        'in-content' => 'In Content',
-        'floating' => 'Floating',
-        'popup' => 'Popup',
+        'header'       => 'Header',
+        'sidebar'      => 'Sidebar',
+        'footer'       => 'Footer',
+        'in-content'   => 'In Content',
+        'floating'     => 'Floating',
+        'popup'        => 'Popup',
         'interstitial' => 'Interstitial',
-        'any' => 'Any Placement',
-       
-
+        'any'          => 'Any Placement',
     ];
 
     $adTypes = [
-        'banner' => 'Banner',
-        'video' => 'Video',
-        'popup' => 'Popup',
-        'Interstitial' => 'Interstitial',
-        'js' => 'JavaScript',
-        'persistent' => 'Persistent',
-        'image' => 'Image',
-
-
+        'banner'       => 'Banner',
+        'video'        => 'Video',
+        'popup'        => 'Popup',
+        'interstitial' => 'Interstitial',
+        'js'           => 'JavaScript',
+        'persistent'   => 'Persistent',
+        'image'        => 'Image',
+        'all'          => 'All Types',
     ];
 
     return view('admin.ads.index', compact('ads', 'placements', 'adTypes'));
 }
+
 
 
     /**

@@ -7,6 +7,7 @@
 @endsection
 
 @section('content')
+
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-7xl mx-auto">
         {{-- Success message --}}
@@ -138,6 +139,7 @@
             </a>
         </div>
 
+
         {{-- Ads Table --}}
         <div class="overflow-x-auto bg-white rounded-lg shadow">
             <table class="min-w-full divide-y divide-gray-200">
@@ -159,68 +161,59 @@
                     </tr>
                 </thead>
 
-                <tbody class="bg-white divide-y divide-gray-200">
-                   
+              <tbody class="bg-white divide-y divide-gray-200">
+    @forelse($ads as $ad)
+    <tr class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->title }}</td>
+        <td class="px-6 py-4 whitespace-nowrap capitalize">{{ $ad->type }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->user->name ?? 'N/A' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->product->name ?? 'N/A' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap capitalize">{{ $ad->placement ?? 'Any' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            @if($ad->is_active)
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                    Active
+                </span>
+            @else
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                    Inactive
+                </span>
+            @endif
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->start_at?->format('Y-m-d H:i') ?? '-' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->end_at?->format('Y-m-d H:i') ?? '-' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->weight ?? '-' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->max_impressions ?? 'Unlimited' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->max_clicks ?? 'Unlimited' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->is_random ? 'Yes' : 'No' }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            @if($ad->type === 'image')
+                <img src="{{ $ad->content }}" alt="{{ $ad->title }}" class="h-16 w-auto">
+            @elseif($ad->type === 'video')
+                <video src="{{ $ad->content }}" class="h-16 w-auto" controls></video>
+            @else
+                <span>{{ $ad->content }}</span>
+            @endif
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-center space-x-2">
+            <a href="{{ route('admin.ads.show', $ad->id) }}" class="text-blue-600 hover:text-blue-900">View</a>
+            <a href="{{ route('admin.ads.edit', $ad->id) }}" class="text-yellow-600 hover:text-yellow-900">Edit</a>
+            <form action="{{ route('admin.ads.destroy', $ad->id) }}" method="POST" class="inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+            </form>
+        </td>
+    </tr>
+    @empty
+    <tr>
+        <td colspan="13" class="px-6 py-4 text-center text-gray-500">
+            No ads found.
+        </td>
+    </tr>
+    @endforelse
+</tbody>
 
-                   @forelse($ads as $ad)
-<tr class="hover:bg-gray-50">
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->title }}</td>
-    <td class="px-6 py-4 whitespace-nowrap capitalize">{{ $ad->type }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->user_name ?? 'N/A' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->product_name ?? 'N/A' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap capitalize">{{ $ad->placement ?? 'Any' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">
-        @if($ad->is_active)
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                <i class="bi bi-check-circle-fill mr-1"></i> Active
-            </span>
-        @else
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                <i class="bi bi-x-circle-fill mr-1"></i> Inactive
-            </span>
-        @endif
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->start_at ? \Carbon\Carbon::parse($ad->start_at)->format('Y-m-d H:i') : '-' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->end_at ? \Carbon\Carbon::parse($ad->end_at)->format('Y-m-d H:i') : '-' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->weight ?? '-' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->max_impressions ?? 'Unlimited' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">{{ $ad->max_clicks ?? 'Unlimited' }}</td>
-    <td class="px-6 py-4 whitespace-nowrap">
-        @if($ad->is_random)
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                Yes
-            </span>
-        @else
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                No
-            </span>
-        @endif
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-center space-x-2">
-        <a href="{{ route('admin.ads.show', $ad->id) }}" title="View" class="text-blue-600 hover:text-blue-900">
-            <i class="bi bi-eye-fill"></i>
-        </a>
-        <a href="{{ route('admin.ads.edit', $ad->id) }}" title="Edit" class="text-yellow-600 hover:text-yellow-900">
-            <i class="bi bi-pencil-fill"></i>
-        </a>
-        <form action="{{ route('admin.ads.destroy', $ad->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this ad?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="text-red-600 hover:text-red-900" title="Delete">
-                <i class="bi bi-trash-fill"></i>
-            </button>
-        </form>
-    </td>
-</tr>
-@empty
-<tr>
-    <td colspan="13" class="px-6 py-4 text-center text-gray-500">
-        No ads found.
-    </td>
-</tr>
-@endforelse
-
-                </tbody>
             </table>
         </div>
 
