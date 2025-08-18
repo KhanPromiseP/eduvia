@@ -45,4 +45,18 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function hasPaid($productId)
+    {
+        return $this->payments()
+                    ->where('product_id', $productId)
+                    ->where('status', 'completed')
+                    ->exists();
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
 }

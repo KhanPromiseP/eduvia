@@ -141,81 +141,83 @@
 
 
         {{-- Ads Table --}}
-        <div class="overflow-x-auto bg-white rounded-lg shadow">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creator</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placement</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impressions</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Random</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
+       <div class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="min-w-full divide-y divide-gray-200 table-fixed">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Type</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Creator</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Product</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Placement</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Status</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Start Date</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">End Date</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Weight</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Impressions</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Clicks</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Random</th>
+                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Type</th>
+                <th class="w-[100px] px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Actions</th>
+            </tr>
+        </thead>
 
-              <tbody class="bg-white divide-y divide-gray-200">
-    @forelse($ads as $ad)
-    <tr class="hover:bg-gray-50">
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->title }}</td>
-        <td class="px-6 py-4 whitespace-nowrap capitalize">{{ $ad->type }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->user->name ?? 'N/A' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->product->name ?? 'N/A' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap capitalize">{{ $ad->placement ?? 'Any' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">
-            @if($ad->is_active)
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                    Active
-                </span>
-            @else
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                    Inactive
-                </span>
-            @endif
-        </td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->start_at?->format('Y-m-d H:i') ?? '-' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->end_at?->format('Y-m-d H:i') ?? '-' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->weight ?? '-' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->max_impressions ?? 'Unlimited' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->max_clicks ?? 'Unlimited' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">{{ $ad->is_random ? 'Yes' : 'No' }}</td>
-        <td class="px-6 py-4 whitespace-nowrap">
-            @if($ad->type === 'image')
-                <img src="{{ $ad->content }}" alt="{{ $ad->title }}" class="h-16 w-auto">
-            @elseif($ad->type === 'video')
-                <video src="{{ $ad->content }}" class="h-16 w-auto" controls></video>
-            @else
-                <span>{{ $ad->content }}</span>
-            @endif
-        </td>
-        <td class="px-6 py-4 whitespace-nowrap text-center space-x-2">
-            <a href="{{ route('admin.ads.show', $ad->id) }}" class="text-blue-600 hover:text-blue-900">View</a>
-            <a href="{{ route('admin.ads.edit', $ad->id) }}" class="text-yellow-600 hover:text-yellow-900">Edit</a>
-            <form action="{{ route('admin.ads.destroy', $ad->id) }}" method="POST" class="inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
-            </form>
-        </td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="13" class="px-6 py-4 text-center text-gray-500">
-            No ads found.
-        </td>
-    </tr>
-    @endforelse
-</tbody>
+        <tbody class="bg-white divide-y divide-gray-200">
+            @forelse($ads as $ad)
+            <tr class="hover:bg-gray-50">
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->title }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap capitalize">{{ $ad->type }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->user->name ?? 'N/A' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->product->name ?? 'N/A' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap capitalize">{{ $ad->placement ?? 'Any' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">
+                    @if($ad->is_active)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            Inactive
+                        </span>
+                    @endif
+                </td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->start_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->end_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->weight ?? '-' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->max_impressions ?? 'Unlimited' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->max_clicks ?? 'Unlimited' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->is_random ? 'Yes' : 'No' }}</td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">
+                    @if($ad->type === 'image')
+                        <img src="{{ $ad->content }}" alt="{{ $ad->title }}" class="h-16 w-auto">
+                    @elseif($ad->type === 'video')
+                        <video src="{{ $ad->content }}" class="h-16 w-auto" controls></video>
+                    @else
+                        <span>{{ $ad->content }}</span>
+                    @endif
+                </td>
+                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap text-center space-x-2">
+                    <a href="{{ route('admin.ads.show', $ad->id) }}" class="text-blue-600 hover:text-blue-900">View</a>
+                    <a href="{{ route('admin.ads.edit', $ad->id) }}" class="text-yellow-600 hover:text-yellow-900">Edit</a>
+                   <form action="{{ route('admin.ads.destroy', $ad->id) }}" method="POST" 
+                        class="inline"
+                        onsubmit="return confirm('Are you sure you want to delete this ad? This action cannot be undone.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                    </form>
 
-            </table>
-        </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="13" class="px-6 py-4 text-center text-gray-500">
+                    No ads found.
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
         {{-- Pagination --}}
     @if($ads instanceof \Illuminate\Pagination\AbstractPaginator && $ads->hasPages())

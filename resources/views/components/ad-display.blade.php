@@ -1,4 +1,3 @@
-{{-- resources/views/components/ad-display.blade.php --}}
 @props(['ad', 'placement' => 'inline', 'delay' => 0])
 
 @php
@@ -11,7 +10,7 @@
     // Define placement styles
     $placementStyles = [
         'inline' => 'position: relative; margin: 20px auto;',
-        'sidebar' => 'position: sticky; top: 100px; float: right; margin: 0 0 20px 20px;',
+        'sidebar' => 'position: sticky; top: 100px; float: right; margin: 0 0 10px 10px; right: 5px',
         'header' => 'position: sticky; top: 0; z-index: 1000; width: 100%;',
         'footer' => 'position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;',
         'floating' => 'position: fixed; bottom: 20px; right: 20px; z-index: 1050;',
@@ -40,10 +39,6 @@
             @include('components.ads.video-ad', ['ad' => $ad, 'adId' => $adId])
             @break
 
-             @case('video')
-            @include('components.ads.image-ad', ['ad' => $ad, 'adId' => $adId])
-            @break
-        
         @case('banner')
             @include('components.ads.banner-ad', ['ad' => $ad, 'adId' => $adId])
             @break
@@ -95,7 +90,7 @@ function initializeAd(container, adData) {
         return;
     }
     
-    // Show the ad with animation
+    // Show the ad without animation
     showAd(container, adData);
     
     // Track view
@@ -137,32 +132,12 @@ function checkTargeting(targeting) {
         if (!matchesUrl) return false;
     }
     
-    // User behavior targeting (example: scroll depth)
-    if (targeting.scroll_depth) {
-        // This would be implemented with scroll tracking
-        return checkScrollDepthTargeting(targeting.scroll_depth);
-    }
-    
     return true;
 }
 
 function showAd(container, adData) {
-    const animations = {
-        'popup': 'adFadeInScale',
-        'interstitial': 'adSlideDown',
-        'persistent': 'adSlideUp',
-        'floating': 'adFadeInRight',
-        'default': 'adFadeIn'
-    };
-    
-    const animation = animations[adData.type] || animations['default'];
+    // Simply show the container without any animation
     container.style.display = 'block';
-    container.classList.add(animation);
-    
-    // Remove animation class after animation completes
-    setTimeout(() => {
-        container.classList.remove(animation);
-    }, 500);
 }
 
 function trackAdView(adId) {
@@ -224,208 +199,63 @@ function trackAdClick(adId, adLink) {
     });
 }
 
-function setupAdControls(container, adData) {
-    // Add close button for popup and interstitial ads
-    if (['popup', 'interstitial', 'persistent'].includes(adData.type)) {
-        const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '×';
-        closeBtn.className = 'ad-close-btn';
-        closeBtn.style.cssText = `
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            line-height: 1;
-            z-index: 10001;
-        `;
+// function setupAdControls(container, adData) {
+//     // Add close button for popup and interstitial ads
+//     if (['popup', 'interstitial', 'persistent'].includes(adData.type)) {
+//         const closeBtn = document.createElement('button');
+//         closeBtn.innerHTML = '×';
+//         closeBtn.className = 'ad-close-btn';
+//         closeBtn.style.cssText = `
+//             position: absolute;
+//             top: 5px;
+//             right: 5px;
+//             background: rgba(0,0,0,0.7);
+//             color: white;
+//             border: none;
+//             border-radius: 50%;
+//             width: 25px;
+//             height: 25px;
+//             cursor: pointer;
+//             font-size: 16px;
+//             line-height: 1;
+//             z-index: 10001;
+//         `;
         
-        closeBtn.addEventListener('click', function() {
-            closeAd(container, adData);
-        });
+//         // Show close button after 5 seconds
+//         setTimeout(() => {
+//             container.appendChild(closeBtn);
+//         }, 5000);
         
-        container.appendChild(closeBtn);
+//         closeBtn.addEventListener('click', function() {
+//             closeAd(container, adData);
+//         });
         
-        // Auto-close for popup ads
-        if (adData.type === 'popup') {
-            setTimeout(() => {
-                if (container.style.display !== 'none') {
-                    closeAd(container, adData);
-                }
-            }, 10000); // Auto close after 10 seconds
-        }
-    }
-}
+//         // Auto-close for popup ads after 10 seconds
+//         if (adData.type === 'popup') {
+//             setTimeout(() => {
+//                 if (container.style.display !== 'none') {
+//                     closeAd(container, adData);
+//                 }
+//             }, 10000);
+//         }
+//     }
+// }
 
 function closeAd(container, adData) {
-    container.style.opacity = '0';
-    container.style.transform = 'scale(0.8)';
+    // Simply hide the container without animation
+    container.style.display = 'none';
     
-    setTimeout(() => {
-        container.style.display = 'none';
-        
-        // Track ad close
-        fetch('/api/ads/track/close', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({
-                ad_id: adData.id,
-                timestamp: Date.now()
-            })
-        });
-    }, 300);
-}
-
-function checkScrollDepthTargeting(targetDepth) {
-    const scrollDepth = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-    return scrollDepth >= targetDepth;
+    // Track ad close
+    fetch('/api/ads/track/close', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            ad_id: adData.id,
+            timestamp: Date.now()
+        })
+    });
 }
 </script>
-
-{{-- CSS Styles --}}
-<style>
-/* Animation Classes */
-.adFadeIn {
-    animation: adFadeIn 0.5s ease-in-out;
-}
-
-.adFadeInScale {
-    animation: adFadeInScale 0.3s ease-out;
-}
-
-.adSlideDown {
-    animation: adSlideDown 0.4s ease-out;
-}
-
-.adSlideUp {
-    animation: adSlideUp 0.4s ease-out;
-}
-
-.adFadeInRight {
-    animation: adFadeInRight 0.5s ease-out;
-}
-
-/* Keyframes */
-@keyframes adFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes adFadeInScale {
-    from { 
-        opacity: 0; 
-        transform: scale(0.8); 
-    }
-    to { 
-        opacity: 1; 
-        transform: scale(1); 
-    }
-}
-
-@keyframes adSlideDown {
-    from { 
-        transform: translateY(-100%); 
-        opacity: 0; 
-    }
-    to { 
-        transform: translateY(0); 
-        opacity: 1; 
-    }
-}
-
-@keyframes adSlideUp {
-    from { 
-        transform: translateY(100%); 
-        opacity: 0; 
-    }
-    to { 
-        transform: translateY(0); 
-        opacity: 1; 
-    }
-}
-
-@keyframes adFadeInRight {
-    from { 
-        transform: translateX(100%); 
-        opacity: 0; 
-    }
-    to { 
-        transform: translateX(0); 
-        opacity: 1; 
-    }
-}
-
-/* Ad Container Base Styles */
-.ad-container {
-    transition: all 0.3s ease;
-    font-family: Arial, sans-serif;
-}
-
-.ad-container:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .ad-container[data-placement="sidebar"] {
-        position: relative !important;
-        float: none !important;
-        margin: 20px auto !important;
-        max-width: 100% !important;
-    }
-    
-    .ad-container[data-placement="floating"] {
-        bottom: 10px !important;
-        right: 10px !important;
-        left: 10px !important;
-        width: auto !important;
-    }
-}
-
-/* Ad Label Styling */
-.ad-label {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: rgba(255,255,255,0.9);
-    color: #666;
-    font-size: 10px;
-    padding: 2px 6px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    border-radius: 2px 0 0 0;
-    font-family: Arial, sans-serif;
-    user-select: none;
-    z-index: 10;
-}
-
-/* Close Button Hover Effect */
-.ad-close-btn:hover {
-    background: rgba(0,0,0,0.9) !important;
-    transform: scale(1.1);
-}
-
-/* Overlay for popup and interstitial ads */
-.ad-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-</style>

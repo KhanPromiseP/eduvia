@@ -31,17 +31,83 @@
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
-            {{-- Header Ad Placement --}}
-            @if(isset($adPlacements['header']) && $adPlacements['header']->isNotEmpty())
-                <div class="header-ad-container">
-                    @foreach($adPlacements['header'] as $ad)
-                        <x-ad-display :ad="$ad" placement="header" :delay="0" />
-                    @endforeach
-                </div>
-            @endif
 
-            {{-- Navigation --}}
-            @include('layouts.navigation')
+
+
+{{-- Header Ad Placement --}}
+@if(isset($adPlacements['header']) && $adPlacements['header']->isNotEmpty())
+<div class="header-ad-container fixed top-0 left-0 w-full z-40 pointer-events-none width-full">
+
+    {{-- Toggle Button: placed below nav --}}
+    <button id="header-ad-toggle" 
+            class="absolute top-[64px] right-4 z-50 bg-blue-600 text-white px-3 py-1 rounded-b-md shadow hover:bg-blue-700 transition-colors pointer-events-auto">
+        Ads ▼
+    </button>
+
+    {{-- Ad Panel --}}
+    <div id="header-ad-panel" class="w-full bg-white shadow-md border-b border-gray-200 overflow-hidden transform -translate-y-full transition-transform duration-700 ease-out z-45 pointer-events-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-center">
+            @foreach($adPlacements['header'] as $ad)
+                <div class="header-ad-wrapper w-full max-w-[728px]">
+                    <x-ad-display :ad="$ad" placement="header" :delay="0" />
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- Navigation bar --}}
+<div class="sticky top-0 z-50 bg-white">
+    @include('layouts.navigation')
+</div>
+
+<style>
+/* Subtle bounce for ad content */
+@keyframes bounce-slow {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.header-ad-wrapper .ad-card-container {
+  animation: bounce-slow 3s infinite;
+}
+
+/* Smooth slide down animation */
+.header-ad-slide-down {
+  transform: translateY(0) !important;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById("header-ad-toggle");
+    const adPanel = document.getElementById("header-ad-panel");
+    const navBarHeight = document.querySelector('.sticky').offsetHeight;
+    let isOpen = false;
+
+    // Ensure ad panel starts hidden above nav
+    adPanel.style.transform = `translateY(-${adPanel.offsetHeight}px)`;
+
+    // Slide down automatically on page load
+    setTimeout(() => {
+        adPanel.style.transform = `translateY(${navBarHeight}px)`;
+        isOpen = true;
+        toggleBtn.innerHTML = "Ads ▲";
+    }, 300);
+
+    // Toggle button click
+    toggleBtn.addEventListener("click", () => {
+        if (isOpen) {
+            adPanel.style.transform = `translateY(-${adPanel.offsetHeight}px)`;
+            toggleBtn.innerHTML = "Ads ▼";
+        } else {
+            adPanel.style.transform = `translateY(${navBarHeight}px)`;
+            toggleBtn.innerHTML = "Ads ▲";
+        }
+        isOpen = !isOpen;
+    });
+});
+</script>
 
             <!-- Page Heading -->
             @isset($header)
@@ -53,130 +119,194 @@
             @endisset
 
             {{-- Main Content with Sidebar Ads --}}
-            <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative">
-                <div class="flex flex-col lg:flex-row gap-6">
-                    {{-- Main Content Area --}}
-                    <div class="flex-1">
-                        {{-- In-content ads (before main content) --}}
-                        @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->isNotEmpty())
-                            <div class="in-content-ad-top mb-6">
-                                @foreach($adPlacements['in-content'] as $ad)
-                                    <x-ad-display :ad="$ad" placement="in-content" :delay="2" />
-                                @endforeach
-                            </div>
-                        @endif
+            <div class="max-w-[1920px] mx-auto relative">
+    {{-- Sidebar Ads --}}
+@if(isset($adPlacements['sidebar']) && $adPlacements['sidebar']->isNotEmpty())
 
-                        {{-- Page Content --}}
-                        {{ $slot }}
+{{-- Left Sidebar (desktop only) --}}
+<div class="hidden xl:block fixed left-0 top-2/3 transform -translate-y-1/2 w-[160px] ml-4 z-30">
+    <div class="sidebar-ads space-y-4">
+        @foreach($adPlacements['sidebar'] as $index => $ad)
+            <div class="sidebar-ad-wrapper relative w-full">
+                <x-ad-display 
+                    :ad="$ad" 
+                    placement="sidebar-left" 
+                    :delay="$index * 1.5 + 1" 
+                />
+                <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
+                    ×
+                </button>
+            </div>
+        @endforeach
+    </div>
+</div>
 
-                        {{-- In-content ads (after main content) --}}
-                        @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->count() > 1)
-                            <div class="in-content-ad-bottom mt-6">
-                                @foreach($adPlacements['in-content']->skip(1) as $ad)
-                                    <x-ad-display :ad="$ad" placement="in-content" :delay="5" />
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
+{{-- Right Sidebar (desktop only) --}}
+<div class="hidden xl:block fixed right-0 top-1/2 transform -translate-y-1/2 w-[160px] mr-4 z-30">
+    <div class="sidebar-ads space-y-4">
+        @foreach($adPlacements['sidebar']->skip(1) as $index => $ad)
+            <div class="sidebar-ad-wrapper relative w-full">
+                <x-ad-display 
+                    :ad="$ad" 
+                    placement="sidebar-right" 
+                    :delay="$index * 1.5 + 1" 
+                />
+                <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
+                    ×
+                </button>
+            </div>
+        @endforeach
+    </div>
+</div>
 
-                    {{-- Sidebar with Ads --}}
-                    <aside class="w-full lg:w-80 space-y-6">
-                        @if(isset($adPlacements['sidebar']) && $adPlacements['sidebar']->isNotEmpty())
-                            <div class="sidebar-ads space-y-4">
-                                @foreach($adPlacements['sidebar'] as $index => $ad)
-                                    <x-ad-display 
-                                        :ad="$ad" 
-                                        placement="sidebar" 
-                                        :delay="$index * 1.5 + 1" 
-                                    />
-                                @endforeach
-                            </div>
-                        @endif
-                        
-                        {{-- Regular sidebar content --}}
-                        @yield('sidebar')
-                    </aside>
-                </div>
-            </main>
+{{-- Mobile-friendly sidebar (full visible, side) --}}
+<div class="xl:hidden fixed top-2/3 right-0 transform -translate-y-0 z-40 w-[160px] sm:w-[180px]">
+    <div class="sidebar-ads space-y-4">
+        @foreach($adPlacements['sidebar'] as $index => $ad)
+            <div class="sidebar-ad-wrapper relative w-full">
+                <x-ad-display 
+                    :ad="$ad" 
+                    placement="sidebar-mobile" 
+                    :delay="$index * 1.5 + 1" 
+                />
+                <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
+                    ×
+                </button>
+            </div>
+        @endforeach
+    </div>
+</div>
 
-            {{-- Footer Ad Placement --}}
-            @if(isset($adPlacements['footer']) && $adPlacements['footer']->isNotEmpty())
-                <div class="footer-ad-container mt-8 mb-4">
-                    @foreach($adPlacements['footer'] as $ad)
-                        <x-ad-display :ad="$ad" placement="footer" :delay="3" />
-                    @endforeach
-                </div>
-            @endif
+@endif
 
-            {{-- Floating Ads --}}
-            @if(isset($adPlacements['floating']) && $adPlacements['floating']->isNotEmpty())
-                @foreach($adPlacements['floating'] as $index => $ad)
-                    <x-ad-display 
-                        :ad="$ad" 
-                        placement="floating" 
-                        :delay="$index * 2 + 8" 
-                    />
-                @endforeach
-            @endif
+<style>
+/* Subtle bounce for attention */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.sidebar-ad-wrapper .ad-card-container {
+    animation: bounce-slow 3s infinite;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+</style>
 
-            {{-- Popup Ads (Enhanced with new functionality) --}}
-            @if(isset($adPlacements['popup']) && $adPlacements['popup']->isNotEmpty())
-                @foreach($adPlacements['popup'] as $index => $ad)
-                    <x-ad-display 
-                        :ad="$ad" 
-                        placement="popup" 
-                        :delay="$index * 3 + 10" 
-                    />
-                @endforeach
-            @endif
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.sidebar-ad-wrapper').forEach(wrapper => {
+        const closeBtn = wrapper.querySelector('.sidebar-close-btn');
 
-            {{-- Legacy popup support (backward compatibility) --}}
-            @if(isset($ads) && $ads->isNotEmpty())
-                @foreach($ads as $ad)
-                    @if($ad->type === 'popup')
-                        <div
-                            x-data="{ open: true }"
-                            x-show="open"
-                            class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
-                            style="display: none;"
-                            x-transition
-                        >
-                            <div
-                                class="bg-white p-6 rounded shadow max-w-md mx-auto text-center"
-                            >
-                                {!! $ad->content !!}
-                                <button
-                                    @click="open = false"
-                                    class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    @elseif($ad->type === 'interstitial')
-                        <div
-                            x-data="{ open: false }"
-                            x-init="setTimeout(() => open = true, 2000)"
-                            x-show="open"
-                            class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-                            style="display: none;"
-                            x-transition
-                        >
-                            <div
-                                class="bg-white p-6 rounded shadow max-w-lg mx-auto relative"
-                            >
-                                {!! $ad->content !!}
-                                <button
-                                    @click="open = false"
-                                    class="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
-                                >
-                                    &times;
-                                </button>
-                            </div>
+        // Show close button 5s after ad appears
+        setTimeout(() => closeBtn.classList.remove('hidden'), 5000);
+
+        // Close action
+        closeBtn.addEventListener('click', () => {
+            wrapper.style.transform = 'translateX(100%)';
+            wrapper.style.opacity = '0';
+            setTimeout(() => wrapper.remove(), 400);
+        });
+    });
+});
+</script>
+
+
+
+
+                {{-- Main Content --}}
+                <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative z-20">
+                    {{-- In-content ads (before main content) --}}
+                    @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->isNotEmpty())
+                        <div class="in-content-ad-top mb-6">
+                            @foreach($adPlacements['in-content'] as $ad)
+                                <x-ad-display :ad="$ad" placement="in-content" :delay="2" />
+                            @endforeach
                         </div>
                     @endif
-                @endforeach
-            @endif
+
+                    {{-- Page Content --}}
+                    {{ $slot }}
+
+                    {{-- In-content ads (after main content) --}}
+                    @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->count() > 1)
+                        <div class="in-content-ad-bottom mt-6">
+                            @foreach($adPlacements['in-content']->skip(1) as $ad)
+                                <x-ad-display :ad="$ad" placement="in-content" :delay="5" />
+                            @endforeach
+                        </div>
+                    @endif
+                </main>
+            </div>
+
+          {{-- Footer Ads --}}
+@if(isset($adPlacements['footer']) && $adPlacements['footer']->isNotEmpty())
+<div class="footer-ad-container fixed bottom-0 w-full bg-white border-t shadow-inner z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center">
+        @foreach($adPlacements['footer'] as $ad)
+            <div class="footer-ad-wrapper max-w-[728px] w-full">
+                <x-ad-display :ad="$ad" placement="footer" :delay="3" />
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+{{-- Floating Ads --}}
+@if(isset($adPlacements['floating']) && $adPlacements['floating']->isNotEmpty())
+@foreach($adPlacements['floating'] as $index => $ad)
+<div class="floating-ad fixed z-50" style="bottom:20px; right:20px;">
+    <x-ad-display :ad="$ad" placement="floating" :delay="$index * 2 + 8" />
+</div>
+@endforeach
+@endif
+
+{{-- Popup Ads --}}
+@if(isset($adPlacements['popup']) && $adPlacements['popup']->isNotEmpty())
+@foreach($adPlacements['popup'] as $index => $ad)
+<div class="popup-ad fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden" 
+     id="popup-ad-{{ $index }}">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden relative p-6">
+        <button class="absolute top-2 right-2 text-white bg-red-600 px-2 py-1 rounded z-50 close-popup">
+            ✕
+        </button>
+        <x-ad-display :ad="$ad" placement="popup" :delay="$index * 3 + 10" />
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const popup = document.getElementById("popup-ad-{{ $index }}");
+        setTimeout(() => popup.classList.remove("hidden"), {{ $index * 3000 + 10000 }}); // delayed show
+        popup.querySelector(".close-popup").addEventListener("click", () => {
+            popup.classList.add("hidden");
+        });
+    });
+</script>
+@endforeach
+@endif
+
+{{-- Interstitial Ads --}}
+@if(isset($adPlacements['interstitial']) && $adPlacements['interstitial']->isNotEmpty())
+@foreach($adPlacements['interstitial'] as $index => $ad)
+<div class="interstitial-ad fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden" 
+     id="interstitial-ad-{{ $index }}">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden relative p-6">
+        <button class="absolute top-2 right-2 text-white bg-red-600 px-2 py-1 rounded z-50 close-interstitial">
+            ✕
+        </button>
+        <x-ad-display :ad="$ad" placement="interstitial" :delay="$index * 5 + 15000" />
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const interstitial = document.getElementById("interstitial-ad-{{ $index }}");
+        setTimeout(() => interstitial.classList.remove("hidden"), {{ $index * 5000 + 15000 }});
+        interstitial.querySelector(".close-interstitial").addEventListener("click", () => {
+            interstitial.classList.add("hidden");
+        });
+    });
+</script>
+@endforeach
+@endif
+
 
             {{-- Interstitial Ads --}}
             @if(isset($adPlacements['interstitial']) && $adPlacements['interstitial']->isNotEmpty())
@@ -192,8 +322,45 @@
 
         {{-- Global Ad Scripts --}}
         <script>
-            // Global ad management functions
+            // Enhanced Ad Manager with better positioning and performance
             window.AdManager = {
+                // Initialize all ads
+                init: function() {
+                    this.trackPageVisit();
+                    this.setupAdContainers();
+                    this.setupIntersectionObserver();
+                    this.setupScrollHandler();
+                    this.setupVisibilityChangeHandler();
+                    this.setupBeforeUnloadHandler();
+                },
+
+                // Setup ad containers with proper positioning
+                setupAdContainers: function() {
+                    // Position sidebar ads correctly based on viewport
+                    this.positionSidebarAds();
+                    
+                    // Handle responsive behavior
+                    window.addEventListener('resize', () => {
+                        this.positionSidebarAds();
+                    });
+                },
+
+                // Position sidebar ads with proper offsets
+                positionSidebarAds: function() {
+                    const headerHeight = document.querySelector('header')?.offsetHeight || 0;
+                    const viewportHeight = window.innerHeight;
+                    const sidebarAds = document.querySelectorAll('.sidebar-ads');
+                    
+                    sidebarAds.forEach(container => {
+                        const containerHeight = container.offsetHeight;
+                        const maxTop = headerHeight + 20;
+                        const minBottom = viewportHeight - containerHeight - 20;
+                        
+                        // Center vertically but ensure it stays within viewport bounds
+                        container.style.top = `${Math.max(maxTop, Math.min(minBottom, (viewportHeight - containerHeight) / 2))}px`;
+                    });
+                },
+
                 // Track page visit for analytics
                 trackPageVisit: function() {
                     fetch('/api/ads/track/page-visit', {
@@ -205,177 +372,86 @@
                         body: JSON.stringify({
                             url: window.location.href,
                             referrer: document.referrer,
-                            timestamp: Date.now()
+                            timestamp: Date.now(),
+                            screen_size: {
+                                width: window.screen.width,
+                                height: window.screen.height
+                            },
+                            viewport_size: {
+                                width: window.innerWidth,
+                                height: window.innerHeight
+                            }
                         })
                     });
                 },
 
-                // Load ads dynamically for AJAX content
-                loadAdsForPlacement: function(placement, container) {
-                    fetch(`/api/ads/placement/${placement}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.ads.length > 0) {
-                            // Render ads dynamically
-                            this.renderAds(data.ads, container, placement);
-                        }
-                    });
-                },
+                // Setup intersection observer for ad visibility tracking
+                setupIntersectionObserver: function() {
+                    if ('IntersectionObserver' in window) {
+                        this.adObserver = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                const adId = entry.target.getAttribute('data-ad-id');
+                                
+                                if (entry.isIntersecting) {
+                                    // Track ad view (once per session)
+                                    if (adId && !entry.target.hasAttribute('data-view-tracked')) {
+                                        this.trackAdView(adId);
+                                        entry.target.setAttribute('data-view-tracked', 'true');
+                                    }
+                                    
+                                    // Start time tracking
+                                    if (adId) {
+                                        startAdTimeTracking(adId);
+                                    }
+                                } else {
+                                    // Ad went out of view, update time tracking
+                                    if (adId && adViewTimes.has(adId)) {
+                                        updateAdTimeTracking(adId);
+                                    }
+                                }
+                            });
+                        }, { 
+                            threshold: 0.5, // Track when at least 50% of ad is visible
+                            rootMargin: '0px 0px -100px 0px' // Add some buffer at bottom
+                        });
 
-                // Render ads dynamically
-                renderAds: function(ads, container, placement) {
-                    ads.forEach((adData, index) => {
-                        const adElement = this.createAdElement(adData, placement, index);
-                        container.appendChild(adElement);
-                    });
-                },
-
-                // Create ad element
-                createAdElement: function(adData, placement, index) {
-                    const adDiv = document.createElement('div');
-                    adDiv.className = 'dynamic-ad';
-                    adDiv.innerHTML = this.getAdHTML(adData, placement);
-                    
-                    // Initialize the ad after a delay
-                    setTimeout(() => {
-                        this.initializeDynamicAd(adDiv, adData);
-                    }, (index + 1) * 1000);
-                    
-                    return adDiv;
-                },
-
-                // Get HTML for different ad types
-                getAdHTML: function(adData, placement) {
-                    const adId = `dynamic-ad-${adData.id}-${Date.now()}`;
-                    
-                    switch(adData.type) {
-                        case 'image':
-                            return `
-                                <div class="ad-container" data-ad-id="${adData.id}">
-                                    <a href="${adData.link || '#'}" target="_blank" data-clickable>
-                                        <img src="${adData.content}" alt="${adData.title}" class="w-full h-auto rounded-lg shadow-md" />
-                                    </a>
-                                    <div class="ad-label">Ad</div>
-                                </div>
-                            `;
-                        case 'banner':
-                            return `
-                                <div class="ad-container bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg" data-ad-id="${adData.id}">
-                                    <a href="${adData.link || '#'}" target="_blank" data-clickable>
-                                        ${adData.content}
-                                    </a>
-                                    <div class="ad-label">Ad</div>
-                                </div>
-                            `;
-                        case 'popup':
-                            return `
-                                <div 
-                                    class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 ad-container" 
-                                    data-ad-id="${adData.id}"
-                                    style="display: none;"
-                                >
-                                    <div class="bg-white p-6 rounded shadow max-w-md mx-auto text-center relative">
-                                        <div class="popup-content">
-                                            <h4 class="font-semibold mb-2">${adData.title}</h4>
-                                            ${adData.content}
-                                        </div>
-                                        <button 
-                                            onclick="this.closest('.ad-container').style.display='none'" 
-                                            class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                                        >
-                                            Close
-                                        </button>
-                                        <div class="ad-label">Ad</div>
-                                    </div>
-                                </div>
-                            `;
-                        case 'interstitial':
-                            return `
-                                <div 
-                                    class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 ad-container" 
-                                    data-ad-id="${adData.id}"
-                                    style="display: none;"
-                                >
-                                    <div class="bg-white p-6 rounded shadow max-w-lg mx-auto relative">
-                                        <div class="interstitial-content">
-                                            <h4 class="font-semibold mb-2">${adData.title}</h4>
-                                            ${adData.content}
-                                        </div>
-                                        <button 
-                                            onclick="this.closest('.ad-container').style.display='none'" 
-                                            class="absolute top-2 right-2 text-gray-700 hover:text-gray-900 text-2xl"
-                                        >
-                                            &times;
-                                        </button>
-                                        <div class="ad-label">Ad</div>
-                                    </div>
-                                </div>
-                            `;
-                        default:
-                            return `
-                                <div class="ad-container p-4 bg-gray-100 border rounded-lg" data-ad-id="${adData.id}">
-                                    <div class="text-center">
-                                        <h4 class="font-semibold">${adData.title}</h4>
-                                        <div class="mt-2 text-sm text-gray-600">${adData.content.substring(0, 100)}...</div>
-                                        ${adData.link ? `<a href="${adData.link}" target="_blank" class="mt-2 inline-block text-blue-600 hover:text-blue-800" data-clickable>Learn More</a>` : ''}
-                                    </div>
-                                    <div class="ad-label">Ad</div>
-                                </div>
-                            `;
+                        // Observe all ad containers
+                        document.querySelectorAll('.ad-container[data-ad-id]').forEach(ad => {
+                            this.adObserver.observe(ad);
+                        });
                     }
                 },
 
-                // Initialize dynamic ad
-                initializeDynamicAd: function(element, adData) {
-                    // Track view
-                    this.trackAdView(adData.id);
+                // Setup scroll handler for fixed ads
+                setupScrollHandler: function() {
+                    let lastScrollPosition = window.pageYOffset;
+                    const floatingAds = document.querySelectorAll('.floating-ad-container');
                     
-                    // Setup click tracking
-                    const clickableElements = element.querySelectorAll('[data-clickable]');
-                    clickableElements.forEach(el => {
-                        el.addEventListener('click', () => {
-                            this.trackAdClick(adData.id, adData.link);
+                    window.addEventListener('scroll', () => {
+                        const currentScrollPosition = window.pageYOffset;
+                        const scrollDirection = currentScrollPosition > lastScrollPosition ? 'down' : 'up';
+                        lastScrollPosition = currentScrollPosition;
+                        
+                        // Adjust floating ads position based on scroll direction
+                        floatingAds.forEach(ad => {
+                            this.adjustFloatingAdPosition(ad, scrollDirection);
                         });
                     });
+                },
+
+                // Adjust floating ad position based on scroll direction
+                adjustFloatingAdPosition: function(ad, scrollDirection) {
+                    const adRect = ad.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
                     
-                    // Show popup/interstitial ads
-                    if (adData.type === 'popup' || adData.type === 'interstitial') {
-                        element.style.display = 'flex';
-                        document.body.appendChild(element);
-                        
-                        // Start time tracking immediately for popup/interstitial ads
-                        startAdTimeTracking(adData.id);
-                        
-                        // Track when popup/interstitial is closed
-                        const closeButtons = element.querySelectorAll('[onclick*="style.display"], button');
-                        closeButtons.forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                updateAdTimeTracking(adData.id);
-                            });
-                        });
+                    if (scrollDirection === 'down') {
+                        // When scrolling down, keep ad near bottom of viewport
+                        const maxTop = viewportHeight - adRect.height - 20;
+                        ad.style.top = `${Math.min(maxTop, window.pageYOffset + viewportHeight - adRect.height - 20)}px`;
                     } else {
-                        // Show with animation for other ad types
-                        element.style.opacity = '0';
-                        element.style.transform = 'translateY(20px)';
-                        element.style.transition = 'all 0.5s ease-out';
-                        
-                        setTimeout(() => {
-                            element.style.opacity = '1';
-                            element.style.transform = 'translateY(0)';
-                            
-                            // Start time tracking if ad is visible
-                            const rect = element.getBoundingClientRect();
-                            const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-                            if (isVisible) {
-                                startAdTimeTracking(adData.id);
-                            }
-                        }, 100);
+                        // When scrolling up, keep ad near top of viewport
+                        const minTop = window.pageYOffset + 20;
+                        ad.style.top = `${Math.max(minTop, window.pageYOffset + 20)}px`;
                     }
                 },
 
@@ -395,9 +471,27 @@
                             viewport: {
                                 width: window.innerWidth,
                                 height: window.innerHeight
-                            }
+                            },
+                            position: this.getAdPosition(adId)
                         })
                     });
+                },
+
+                // Get ad position on page
+                getAdPosition: function(adId) {
+                    const adElement = document.querySelector(`.ad-container[data-ad-id="${adId}"]`);
+                    if (!adElement) return 'unknown';
+                    
+                    const rect = adElement.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const viewportWidth = window.innerWidth;
+                    
+                    // Determine position relative to viewport
+                    if (rect.top < viewportHeight * 0.25) return 'top';
+                    if (rect.top > viewportHeight * 0.75) return 'bottom';
+                    if (rect.left < viewportWidth * 0.33) return 'left';
+                    if (rect.left > viewportWidth * 0.66) return 'right';
+                    return 'middle';
                 },
 
                 // Track ad click
@@ -412,119 +506,70 @@
                             ad_id: adId,
                             timestamp: Date.now(),
                             url: window.location.href,
-                            target_url: targetUrl
+                            target_url: targetUrl,
+                            position: this.getAdPosition(adId)
                         })
                     });
                 },
 
-                // Refresh ads periodically
-                startAdRefresh: function(interval = 300000) { // 5 minutes
-                    setInterval(() => {
-                        this.refreshVisibleAds();
-                    }, interval);
-                },
-
-                // Refresh visible ads
-                refreshVisibleAds: function() {
-                    const adContainers = document.querySelectorAll('.ad-container[data-ad-id]');
-                    adContainers.forEach(container => {
-                        if (this.isElementVisible(container)) {
-                            // Optionally refresh ad content
-                            this.fadeOutAndRefresh(container);
+                // Setup visibility change handler for time tracking
+                setupVisibilityChangeHandler: function() {
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.hidden) {
+                            // User switched away, update all tracked ads
+                            adViewTimes.forEach((startTime, adId) => {
+                                updateAdTimeTracking(adId);
+                            });
+                        } else {
+                            // User returned, restart tracking for visible ads
+                            document.querySelectorAll('.ad-container[data-ad-id]').forEach(adElement => {
+                                const adId = adElement.getAttribute('data-ad-id');
+                                const rect = adElement.getBoundingClientRect();
+                                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                                
+                                if (isVisible && adViewTimes.has(adId)) {
+                                    adViewTimes.set(adId, Date.now()); // Reset start time
+                                }
+                            });
                         }
                     });
                 },
 
-                // Check if element is visible
-                isElementVisible: function(element) {
-                    const rect = element.getBoundingClientRect();
-                    return (
-                        rect.top >= 0 &&
-                        rect.left >= 0 &&
-                        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-                    );
-                },
-
-                // Fade out and refresh ad
-                fadeOutAndRefresh: function(container) {
-                    container.style.transition = 'opacity 0.5s ease-out';
-                    container.style.opacity = '0.5';
-                    
-                    setTimeout(() => {
-                        container.style.opacity = '1';
-                    }, 1000);
-                },
-
-                // Load ads for specific placement (useful for AJAX pages)
-                loadPlacementAds: function(placement) {
-                    const container = document.querySelector(`.${placement}-ads, .${placement}-ad-container`);
-                    if (container) {
-                        this.loadAdsForPlacement(placement, container);
-                    }
+                // Setup beforeunload handler for final time tracking
+                setupBeforeUnloadHandler: function() {
+                    window.addEventListener('beforeunload', () => {
+                        // Update all currently tracked ads
+                        adViewTimes.forEach((startTime, adId) => {
+                            updateAdTimeTracking(adId);
+                        });
+                        
+                        // Send time spent data for each ad
+                        adTimeTracking.forEach((timeSpent, adId) => {
+                            if (timeSpent > 0) {
+                                const payload = JSON.stringify({
+                                    ad_id: adId,
+                                    time_spent: Math.round(timeSpent),
+                                    session_id: null,
+                                    url: window.location.href,
+                                    position: this.getAdPosition(adId)
+                                });
+                                
+                                navigator.sendBeacon('/api/ads/track/time-spent', payload);
+                            }
+                        });
+                    });
                 }
             };
 
             // Initialize ad management when DOM is loaded
             document.addEventListener('DOMContentLoaded', function() {
-                // Track page visit
-                AdManager.trackPageVisit();
-                
-                // Start ad refresh (optional)
-                // AdManager.startAdRefresh();
-                
-                // Setup intersection observer for better ad view tracking and time tracking
-                if ('IntersectionObserver' in window) {
-                    const adObserver = new IntersectionObserver((entries) => {
-                        entries.forEach(entry => {
-                            const adId = entry.target.getAttribute('data-ad-id');
-                            
-                            if (entry.isIntersecting) {
-                                // Track ad view (once per session)
-                                if (adId && !entry.target.hasAttribute('data-view-tracked')) {
-                                    AdManager.trackAdView(adId);
-                                    entry.target.setAttribute('data-view-tracked', 'true');
-                                }
-                                
-                                // Start time tracking
-                                if (adId) {
-                                    startAdTimeTracking(adId);
-                                }
-                            } else {
-                                // Ad went out of view, update time tracking
-                                if (adId && adViewTimes.has(adId)) {
-                                    updateAdTimeTracking(adId);
-                                }
-                            }
-                        });
-                    }, { 
-                        threshold: 0.1, // Track when at least 10% of ad is visible
-                        rootMargin: '0px 0px -50px 0px' // Add some buffer
-                    });
-
-                    // Observe all ad containers
-                    document.querySelectorAll('.ad-container[data-ad-id]').forEach(ad => {
-                        adObserver.observe(ad);
-                    });
-                    
-                    // Also observe dynamically added ads
-                    const observeNewAds = () => {
-                        document.querySelectorAll('.ad-container[data-ad-id]:not([data-observed])').forEach(ad => {
-                            adObserver.observe(ad);
-                            ad.setAttribute('data-observed', 'true');
-                        });
-                    };
-                    
-                    // Check for new ads every 2 seconds
-                    setInterval(observeNewAds, 2000);
-                }
+                AdManager.init();
             });
 
             // Track time spent per ad
-            let adViewTimes = new Map(); // Store when each ad was first viewed
-            let adTimeTracking = new Map(); // Store accumulated time per ad
+            let adViewTimes = new Map();
+            let adTimeTracking = new Map();
             
-            // Function to start tracking time for an ad
             function startAdTimeTracking(adId) {
                 if (!adViewTimes.has(adId)) {
                     adViewTimes.set(adId, Date.now());
@@ -532,7 +577,6 @@
                 }
             }
             
-            // Function to update time spent on an ad
             function updateAdTimeTracking(adId) {
                 if (adViewTimes.has(adId)) {
                     const startTime = adViewTimes.get(adId);
@@ -540,128 +584,96 @@
                     const sessionTime = currentTime - startTime;
                     const currentTotal = adTimeTracking.get(adId) || 0;
                     adTimeTracking.set(adId, currentTotal + sessionTime);
-                    // Reset start time for continuous tracking
                     adViewTimes.set(adId, currentTime);
                 }
             }
-            
-            // Track page unload time per ad
-            window.addEventListener('beforeunload', function() {
-                // Update all currently tracked ads
-                adViewTimes.forEach((startTime, adId) => {
-                    updateAdTimeTracking(adId);
-                });
-                
-                // Send time spent data for each ad
-                adTimeTracking.forEach((timeSpent, adId) => {
-                    if (timeSpent > 0) { // Only send if user actually spent time viewing the ad
-                        const payload = JSON.stringify({
-                            ad_id: adId,
-                            time_spent: Math.round(timeSpent), // Convert to milliseconds, rounded
-                            session_id: null, // Will be handled by server
-                            url: window.location.href
-                        });
-                        
-                        navigator.sendBeacon('/api/ads/track/time-spent', payload);
-                    }
-                });
-            });
-            
-            // Track when ads come into view and go out of view
-            window.addEventListener('scroll', function() {
-                // Throttle scroll events
-                clearTimeout(window.scrollTimeout);
-                window.scrollTimeout = setTimeout(() => {
-                    document.querySelectorAll('.ad-container[data-ad-id]').forEach(adElement => {
-                        const adId = adElement.getAttribute('data-ad-id');
-                        const rect = adElement.getBoundingClientRect();
-                        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-                        
-                        if (isVisible) {
-                            startAdTimeTracking(adId);
-                        } else if (adViewTimes.has(adId)) {
-                            updateAdTimeTracking(adId);
-                        }
-                    });
-                }, 100);
-            });
-            
-            // Track when user switches tabs/windows
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    // User switched away, update all tracked ads
-                    adViewTimes.forEach((startTime, adId) => {
-                        updateAdTimeTracking(adId);
-                    });
-                } else {
-                    // User returned, restart tracking for visible ads
-                    document.querySelectorAll('.ad-container[data-ad-id]').forEach(adElement => {
-                        const adId = adElement.getAttribute('data-ad-id');
-                        const rect = adElement.getBoundingClientRect();
-                        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-                        
-                        if (isVisible && adViewTimes.has(adId)) {
-                            adViewTimes.set(adId, Date.now()); // Reset start time
-                        }
-                    });
-                }
-            });
-
-            // Add Alpine.js integration for dynamic ad loading
-            document.addEventListener('alpine:init', () => {
-                Alpine.data('dynamicAds', () => ({
-                    loadAds(placement) {
-                        AdManager.loadPlacementAds(placement);
-                    }
-                }));
-            });
         </script>
 
-        {{-- Additional CSS for better ad styling --}}
-        <style>
-            .ad-label {
-                position: absolute;
-                top: 2px;
-                right: 2px;
-                background: rgba(0, 0, 0, 0.5);
-                color: white;
-                font-size: 10px;
-                padding: 2px 4px;
-                border-radius: 2px;
-                pointer-events: none;
-            }
-            
-            .ad-container {
-                position: relative;
-            }
-            
-            .header-ad-container,
-            .footer-ad-container {
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                padding: 1rem 0;
-            }
-            
-            .sidebar-ads .ad-container {
-                margin-bottom: 1rem;
-            }
-            
-            .in-content-ad-top,
-            .in-content-ad-bottom {
-                display: flex;
-                justify-content: center;
-                margin: 1rem 0;
-            }
-            
-            .dynamic-ad {
-                transition: all 0.3s ease;
-            }
-            
-            .dynamic-ad:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            }
-        </style>
+<div class="bottom-0 bg-white border-t shadow-lg z-50">
+   <footer class="bg-gray-900 text-gray-300 mt-10 relative z-40">
+    <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        <!-- Brand / About -->
+        <div>
+            <div class="flex items-center space-x-3 mb-4">
+                <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span class="text-lg font-bold text-white">{{ config('app.name', 'Laravel') }}</span>
+            </div>
+            <p class="text-sm leading-relaxed">
+                {{ config('app.name', 'Laravel') }} is your trusted platform for products, blogs, and services. 
+                We connect people with quality and innovation.
+            </p>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+            <h4 class="text-white font-semibold mb-4">Quick Links</h4>
+            <ul class="space-y-2 text-sm">
+                <li><a href="{{ route('dashboard') }}" class="hover:text-indigo-400">Dashboard</a></li>
+                <li><a href="{{ route('products.index') }}" class="hover:text-indigo-400">Products</a></li>
+                <li><a href="{{ route('blog.index') }}" class="hover:text-indigo-400">Blog</a></li>
+                <li><a href="{{ route('service.index') }}" class="hover:text-indigo-400">Services</a></li>
+                <li><a href="{{ route('contact.index') }}" class="hover:text-indigo-400">Contact</a></li>
+            </ul>
+        </div>
+
+        <!-- Support -->
+        <div>
+            <h4 class="text-white font-semibold mb-4">Support</h4>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#" class="hover:text-indigo-400">Help Center</a></li>
+                <li><a href="#" class="hover:text-indigo-400">Terms & Conditions</a></li>
+                <li><a href="#" class="hover:text-indigo-400">Privacy Policy</a></li>
+                <li><a href="#" class="hover:text-indigo-400">Report an Issue</a></li>
+            </ul>
+        </div>
+
+        <!-- Social -->
+        <div>
+            <h4 class="text-white font-semibold mb-4">Follow Us</h4>
+            <div class="flex space-x-4">
+                <a href="#" class="p-2 rounded-full bg-gray-800 hover:bg-indigo-600 transition">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M22 12a10 10 0 11-20 0 10 10 0 0120 0zm-6.5-2h-1.8V8.7c0-.5.2-.8.9-.8h.9V6h-1.5c-1.8 0-2.6.9-2.6 2.4V10H10v2h1.4v6h2.3v-6h1.5l.3-2z"/>
+                    </svg>
+                </a>
+                <a href="#" class="p-2 rounded-full bg-gray-800 hover:bg-indigo-600 transition">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 4.5c-.9.4-1.9.6-3 .8a5.1 5.1 0 002.2-2.8 10.2 10.2 0 01-3.2 1.2A5.1 5.1 0 0016.7 3c-2.9 0-5.2 2.4-5.2 5.3 0 .4 0 .9.1 1.3A14.5 14.5 0 013 4.1a5.3 5.3 0 001.6 7 5 5 0 01-2.3-.6v.1c0 2.5 1.8 4.6 4.2 5.1a5.1 5.1 0 01-2.3.1 5.2 5.2 0 004.9 3.7A10.2 10.2 0 012 19a14.5 14.5 0 007.9 2.3c9.4 0 14.5-7.9 14.5-14.7v-.7c1-.7 1.8-1.6 2.6-2.4z"/>
+                    </svg>
+                </a>
+                <a href="#" class="p-2 rounded-full bg-gray-800 hover:bg-indigo-600 transition">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19.6 3H4.4C3.1 3 2 4.1 2 5.4v13.2C2 19.9 3.1 21 4.4 21h15.2c1.3 0 2.4-1.1 2.4-2.4V5.4C22 4.1 20.9 3 19.6 3zm-1.2 14.4H5.6V6.6h12.8v10.8z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="border-t border-gray-700 py-4 text-center text-sm text-gray-400">
+        © {{ date('Y') }} {{ config('app.name', 'Laravel') }}. All rights reserved.
+    
+    
+  <div class="mt-2">
+    <span class="text-gray-500">
+    Made with ❤️ by 
+    <a href="https://promisecreative.netlify.app" target="_blank" class="text-blue-600 hover:underline">
+      PromiseCreative
+    </a>
+    </span>
+    </div>
+
+ </div>
+</footer>
+
+
+</div>
+        
     </body>
 </html>

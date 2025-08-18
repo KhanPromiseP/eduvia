@@ -55,16 +55,16 @@ class Ad extends Model
     /**
      * Scope for currently running ads (within date range)
      */
-    public function scopeCurrentlyRunning($query)
-    {
-        return $query->where(function($q) {
-            $q->whereNull('start_at')
-              ->orWhere('start_at', '<=', now());
-        })->where(function($q) {
-            $q->whereNull('end_at')
-              ->orWhere('end_at', '>=', now());
-        });
-    }
+ public function scopeCurrentlyRunning($query)
+{
+    return $query->where(function($q) {
+        $q->whereNull('start_at')
+          ->orWhere('start_at', '<=', now()->toDateTimeString());
+    })->where(function($q) {
+        $q->whereNull('end_at')
+          ->orWhere('end_at', '>=', now()->toDateTimeString());
+    });
+}
 
     /**
      * Scope for ads by placement
@@ -117,11 +117,11 @@ class Ad extends Model
     /**
      * Scope for admin view — show all ads, regardless of status/date
      */
-    public function scopeForAdmin($query)
-    {
-        return $query; // no filters for admin view
-    }
-
+  public function scopeForAdmin($query)
+{
+    return $query->with(['user', 'product']) // Eager load relationships
+        ->withoutGlobalScopes(); 
+}
 
 
 
@@ -189,22 +189,24 @@ class Ad extends Model
     /**
      * Get status for display
      */
-    public function getStatusAttribute(): string
-    {
-        if (!$this->is_active) {
-            return 'inactive';
-        }
-
-        if ($this->start_at && $this->start_at->isFuture()) {
-            return 'scheduled';
-        }
-
-        if ($this->end_at && $this->end_at->isPast()) {
-            return 'expired';
-        }
-
-        return 'active';
+public function getStatusAttribute(): string
+{
+    if (!$this->is_active) {
+        return 'inactive';
     }
+
+    $now = now();
+    
+    if ($this->start_at && $this->start_at->gt($now)) {
+        return 'scheduled';
+    }
+
+    if ($this->end_at && $this->end_at->lt($now)) {
+        return 'expired';
+    }
+
+    return 'active';
+}
 }
 
 ?>

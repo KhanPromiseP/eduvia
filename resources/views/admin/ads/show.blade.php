@@ -86,6 +86,59 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
+    .progress-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e5e7eb;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #3b82f6, #6366f1);
+    }
+    .hourly-activity {
+        display: grid;
+        grid-template-columns: repeat(24, 1fr);
+        gap: 2px;
+        height: 60px;
+    }
+    .hour-cell {
+        background-color: #e5e7eb;
+        border-radius: 2px;
+        position: relative;
+    }
+    .hour-cell.active {
+        background-color: #3b82f6;
+    }
+    .hour-cell:hover .hour-tooltip {
+        display: block;
+    }
+    .hour-tooltip {
+        display: none;
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10;
+        margin-bottom: 5px;
+    }
+    .hour-tooltip:after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: #1f2937 transparent transparent transparent;
+    }
 </style>
 @endpush
 
@@ -94,15 +147,25 @@
     <!-- Performance Metrics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mb-12">
         <!-- Total Views -->
-        <div class="card metric-card p-8 text-white">
+        <div class="card p-8 border-l-4 border-gray-500 bg-gradient-to-br from-gray-200 to-emerald-50">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-white/80 text-sm font-medium uppercase tracking-wide">Total Views</p>
+                    <p class="text-gray-900 text-sm font-medium uppercase tracking-wide">Total Views</p>
                     <p class="text-3xl font-bold mt-2">{{ number_format($analytics['total_views']) }}</p>
-                    <p class="text-white/60 text-sm mt-1">impressions</p>
+                    <div class="mt-2 flex items-center">
+                        @php
+                            $viewsChange = $analytics['views_change'] ?? 0;
+                            $viewsTrend = $viewsChange >= 0 ? 'up' : 'down';
+                        @endphp
+                        <span class="text-xs font-medium {{ $viewsTrend === 'up' ? 'text-green-600' : 'text-red-600' }}">
+                            <i class="bi bi-arrow-{{ $viewsTrend }}-right mr-1"></i>
+                            {{ abs($viewsChange) }}% {{ $viewsTrend === 'up' ? 'increase' : 'decrease' }}
+                        </span>
+                        <span class="text-gray-400 text-xs ml-2">vs last period</span>
+                    </div>
                 </div>
-                <div class="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                    <i class="bi bi-eye text-3xl text-white"></i>
+                <div class="p-4 bg-gray-300 rounded-2xl backdrop-blur-sm">
+                    <i class="bi bi-eye text-3xl text-gray"></i>
                 </div>
             </div>
         </div>
@@ -113,7 +176,17 @@
                 <div>
                     <p class="text-green-600 text-sm font-medium uppercase tracking-wide">Total Clicks</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2">{{ number_format($analytics['total_clicks']) }}</p>
-                    <p class="text-green-500 text-sm mt-1">interactions</p>
+                    <div class="mt-2 flex items-center">
+                        @php
+                            $clicksChange = $analytics['clicks_change'] ?? 0;
+                            $clicksTrend = $clicksChange >= 0 ? 'up' : 'down';
+                        @endphp
+                        <span class="text-xs font-medium {{ $clicksTrend === 'up' ? 'text-green-600' : 'text-red-600' }}">
+                            <i class="bi bi-arrow-{{ $clicksTrend }}-right mr-1"></i>
+                            {{ abs($clicksChange) }}% {{ $clicksTrend === 'up' ? 'increase' : 'decrease' }}
+                        </span>
+                        <span class="text-gray-400 text-xs ml-2">vs last period</span>
+                    </div>
                 </div>
                 <div class="p-4 bg-green-100 rounded-2xl">
                     <i class="bi bi-cursor text-3xl text-green-600"></i>
@@ -127,7 +200,15 @@
                 <div>
                     <p class="text-purple-600 text-sm font-medium uppercase tracking-wide">Click Rate</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2">{{ $analytics['ctr'] }}%</p>
-                    <p class="text-purple-500 text-sm mt-1">conversion</p>
+                    <div class="mt-2">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>Industry Avg: 2.5%</span>
+                            <span>{{ round($analytics['ctr'] / 2.5 * 100) }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ min(100, $analytics['ctr'] / 2.5 * 100) }}%"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="p-4 bg-purple-100 rounded-2xl">
                     <i class="bi bi-graph-up text-3xl text-purple-600"></i>
@@ -139,9 +220,11 @@
         <div class="card p-8 border-l-4 border-yellow-500 bg-gradient-to-br from-yellow-50 to-orange-50">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-yellow-600 text-sm font-medium uppercase tracking-wide">Time Spent</p>
+                    <p class="text-yellow-600 text-sm font-medium uppercase tracking-wide">Engagement</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2">{{ gmdate('H:i:s', $analytics['total_time_spent']) }}</p>
-                    <p class="text-yellow-500 text-sm mt-1">engagement</p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Avg: {{ $analytics['avg_time_spent'] ?? 0 }}s per view
+                    </p>
                 </div>
                 <div class="p-4 bg-yellow-100 rounded-2xl">
                     <i class="bi bi-stopwatch text-3xl text-yellow-600"></i>
@@ -215,11 +298,39 @@
                             </div>
                             <div>
                                 <dt class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Max Impressions</dt>
-                                <dd class="mt-2 text-lg font-medium text-gray-900">{{ $ad->max_impressions ? number_format($ad->max_impressions) : 'Unlimited' }}</dd>
+                                <dd class="mt-2 text-lg font-medium text-gray-900">
+                                    @if($ad->max_impressions)
+                                        {{ number_format($ad->max_impressions) }}
+                                        @if($analytics['total_views'] > 0)
+                                            <div class="progress-bar mt-2">
+                                                <div class="progress-fill" style="width: {{ min(100, ($analytics['total_views'] / $ad->max_impressions) * 100) }}%"></div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                {{ number_format(($analytics['total_views'] / $ad->max_impressions) * 100, 1) }}% used
+                                            </p>
+                                        @endif
+                                    @else
+                                        Unlimited
+                                    @endif
+                                </dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Max Clicks</dt>
-                                <dd class="mt-2 text-lg font-medium text-gray-900">{{ $ad->max_clicks ? number_format($ad->max_clicks) : 'Unlimited' }}</dd>
+                                <dd class="mt-2 text-lg font-medium text-gray-900">
+                                    @if($ad->max_clicks)
+                                        {{ number_format($ad->max_clicks) }}
+                                        @if($analytics['total_clicks'] > 0)
+                                            <div class="progress-bar mt-2">
+                                                <div class="progress-fill" style="width: {{ min(100, ($analytics['total_clicks'] / $ad->max_clicks) * 100) }}%"></div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                {{ number_format(($analytics['total_clicks'] / $ad->max_clicks) * 100, 1) }}% used
+                                            </p>
+                                        @endif
+                                    @else
+                                        Unlimited
+                                    @endif
+                                </dd>
                             </div>
                         </div>
                     </div>
@@ -290,12 +401,69 @@
                         <div class="p-2 bg-purple-100 rounded-lg mr-4">
                             <i class="bi bi-graph-up text-purple-600 text-lg"></i>
                         </div>
-                        Performance Analytics
+                        Performance Analytics (Last 30 Days)
                     </h3>
                 </div>
                 <div class="p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Hourly Activity</h4>
+                            <div class="hourly-activity">
+                                @foreach(range(0, 23) as $hour)
+                                    @php
+                                        $hourViews = $analytics['hourly_stats'][$hour] ?? 0;
+                                        $maxHourViews = max(array_values($analytics['hourly_stats'] ?? [1]));
+                                        $height = $maxHourViews > 0 ? ($hourViews / $maxHourViews * 100) : 0;
+                                    @endphp
+                                    <div class="hour-cell {{ $hourViews > 0 ? 'active' : '' }}" style="height: {{ $height }}%">
+                                        <div class="hour-tooltip">
+                                            {{ $hour }}:00 - {{ $hourViews }} views
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-2">
+                                <span>12 AM</span>
+                                <span>6 AM</span>
+                                <span>12 PM</span>
+                                <span>6 PM</span>
+                                <span>12 AM</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Engagement Rate</h4>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-2xl font-bold">{{ $analytics['engagement_rate'] ?? 0 }}%</span>
+                                @php
+                                    $engagementChange = $analytics['engagement_change'] ?? 0;
+                                    $engagementTrend = $engagementChange >= 0 ? 'up' : 'down';
+                                @endphp
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $engagementTrend === 'up' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    <i class="bi bi-arrow-{{ $engagementTrend }}-right mr-1"></i>
+                                    {{ abs($engagementChange) }}%
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500">Percentage of users who interacted with the ad beyond viewing</p>
+                        </div>
+                    </div>
+                    
                     <div class="chart-container">
                         <canvas id="performanceChart"></canvas>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Views by Day of Week</h4>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="weekdayChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Click Distribution</h4>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="clickDistributionChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -329,7 +497,18 @@
                     
                     <div class="flex items-center justify-between">
                         <span class="text-sm font-semibold text-gray-700">Budget</span>
-                        <span class="text-sm font-medium text-gray-900">{{ $ad->budget ? '$' . number_format($ad->budget, 2) : 'No limit' }}</span>
+                        <span class="text-sm font-medium text-gray-900">
+                            @if($ad->budget)
+                                ${{ number_format($ad->budget, 2) }}
+                                @if($analytics['cost_per_click'])
+                                    <span class="text-xs text-gray-500 block text-right">
+                                        ${{ number_format($analytics['cost_per_click'], 4) }} per click
+                                    </span>
+                                @endif
+                            @else
+                                No limit
+                            @endif
+                        </span>
                     </div>
 
                     <div class="flex items-center justify-between">
@@ -340,6 +519,36 @@
                     <div class="flex items-center justify-between">
                         <span class="text-sm font-semibold text-gray-700">Last Updated</span>
                         <span class="text-sm font-medium text-gray-900">{{ $ad->updated_at->format('M d, Y') }}</span>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-gray-200">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Performance Summary</h4>
+                        <div class="space-y-3">
+                            {{-- <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">First Impression</span>
+                                <span class="text-sm font-medium">
+                                    {{ $analytics['first_impression'] ? $analytics['first_impression']->format('M d, Y') : 'Never' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Last Impression</span>
+                                <span class="text-sm font-medium">
+                                    {{ $analytics['last_impression'] ? $analytics['last_impression']->format('M d, Y') : 'Never' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">First Click</span>
+                                <span class="text-sm font-medium">
+                                    {{ $analytics['first_click'] ? $analytics['first_click']->format('M d, Y') : 'Never' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Last Click</span>
+                                <span class="text-sm font-medium">
+                                    {{ $analytics['last_click'] ? $analytics['last_click']->format('M d, Y') : 'Never' }}
+                                </span>
+                            </div> --}}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -359,12 +568,67 @@
                         <div class="chart-container" style="height: 250px;">
                             <canvas id="deviceChart"></canvas>
                         </div>
+                        <div class="mt-4 space-y-3">
+                            @foreach($analytics['device_stats'] as $device)
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">{{ $device->device_type }}</span>
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-semibold mr-2">{{ $device->count }}</span>
+                                        <span class="text-xs text-gray-500">
+                                            ({{ round(($device->count / $analytics['total_views']) * 100, 1) }}%)
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     @else
                         <div class="text-center py-12">
                             <i class="bi bi-bar-chart text-4xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 text-sm">No device data available</p>
                         </div>
                     @endif
+                </div>
+            </div>
+
+            <!-- Geographic Stats Card -->
+            <div class="card overflow-hidden">
+                <div class="card-header px-6 py-5">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <div class="p-2 bg-green-100 rounded-lg mr-3">
+                            <i class="bi bi-globe text-green-600"></i>
+                        </div>
+                        Geographic Distribution
+                    </h3>
+                </div>
+                <div class="p-6">
+                    {{-- @if(count($analytics['geo_stats']) > 0)
+                        <div class="space-y-4">
+                            @foreach($analytics['geo_stats'] as $geo)
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-medium text-gray-700 mr-2">
+                                            <i class="bi bi-geo-alt-fill text-gray-400"></i>
+                                            {{ $geo->country ?? 'Unknown' }}
+                                        </span>
+                                        @if($geo->region)
+                                            <span class="text-xs text-gray-500">({{ $geo->region }})</span>
+                                        @endif
+                                    </div>
+                                    <span class="text-sm font-semibold">{{ $geo->count }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="mt-4 text-center">
+                            <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                View Full Geographic Report
+                            </a>
+                        </div>
+                    @else
+                        <div class="text-center py-12">
+                            <i class="bi bi-globe text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 text-sm">No geographic data available</p>
+                        </div>
+                    @endif --}}
                 </div>
             </div>
 
@@ -472,6 +736,8 @@
         // Get data from Laravel
         const dailyStats = @json($analytics['daily_stats'] ?? []);
         const deviceStats = @json($analytics['device_stats'] ?? []);
+        const weekdayStats = @json($analytics['weekday_stats'] ?? []);
+        const clickDistribution = @json($analytics['click_distribution'] ?? []);
 
         // Performance Chart
         if (dailyStats && dailyStats.length > 0) {
@@ -480,27 +746,54 @@
                 type: 'line',
                 data: {
                     labels: dailyStats.map(stat => stat.date),
-                    datasets: [{
-                        label: 'Views',
-                        data: dailyStats.map(stat => stat.views),
-                        borderColor: 'rgb(99, 102, 241)',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointBackgroundColor: 'rgb(99, 102, 241)',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 3,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
+                    datasets: [
+                        {
+                            label: 'Views',
+                            data: dailyStats.map(stat => stat.views),
+                            borderColor: 'rgb(99, 102, 241)',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: 'rgb(99, 102, 241)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 3,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        },
+                        {
+                            label: 'Clicks',
+                            data: dailyStats.map(stat => stat.clicks),
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: 'rgb(16, 185, 129)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 3,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
                         }
                     },
                     scales: {
@@ -578,6 +871,103 @@
                         }
                     },
                     cutout: '60%'
+                }
+            });
+        }
+
+        // Weekday Chart
+        if (weekdayStats && weekdayStats.length > 0) {
+            const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+            new Chart(weekdayCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                    datasets: [{
+                        label: 'Views',
+                        data: weekdayStats,
+                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                        borderColor: 'rgb(99, 102, 241)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#6b7280',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#6b7280',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Click Distribution Chart
+        if (clickDistribution && clickDistribution.length > 0) {
+            const clickDistCtx = document.getElementById('clickDistributionChart').getContext('2d');
+            new Chart(clickDistCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['First Hour', 'First Day', 'First Week', 'First Month', 'Beyond Month'],
+                    datasets: [{
+                        label: 'Click Timing',
+                        data: clickDistribution,
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderColor: 'rgb(245, 158, 11)',
+                        pointBackgroundColor: 'rgb(245, 158, 11)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(245, 158, 11)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            suggestedMin: 0,
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    }
                 }
             });
         }

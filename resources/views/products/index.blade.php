@@ -5,18 +5,19 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
             <!-- Filters -->
             <div class="mb-6 bg-white p-4 rounded-lg shadow-sm">
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+                    <button @click="open = !open" class="flex items-center justify-between w-full text-gray-600 hover:text-gray-900 font-medium">
                         <span>Filters</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </button>
-                    
+
                     <div x-show="open" @click.away="open = false" 
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="transform opacity-0 scale-95"
@@ -24,7 +25,8 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 p-4">
+                         class="origin-top-right absolute right-0 mt-2 w-full sm:w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10 p-4">
+
                         <form>
                             <div class="space-y-4">
                                 <div>
@@ -46,26 +48,36 @@
             </div>
 
             <!-- Product Grid -->
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
                 @foreach($products as $product)
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow duration-300">
-                    <div class="p-6">
-                        @if($product->thumbnail)
-                            <img src="{{ asset('storage/'.$product->thumbnail) }}" alt="{{ $product->title }}" class="w-full h-48 object-cover rounded-lg">
-                        @else
-                            <div class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                        @endif
-                        
-                        <div class="mt-4">
-                            <h3 class="text-lg font-medium text-gray-900">{{ $product->title }}</h3>
-                            <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ $product->description }}</p>
-                            <div class="mt-4 flex items-center justify-between">
-                                <span class="text-lg font-bold text-gray-900">${{ number_format($product->price, 2) }}</span>
-                                <a href="{{ route('products.show', $product) }}" class="text-indigo-600 hover:text-indigo-900 font-medium">View Details</a>
+                <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col mx-2 sm:mx-0">
+
+                    <!-- Image -->
+                    @if($product->thumbnail)
+                        <div class="overflow-hidden">
+                            <img src="{{ asset('storage/'.$product->thumbnail) }}" alt="{{ $product->title }}" class="w-full h-48 object-cover transform transition-transform duration-300 hover:scale-105">
+                        </div>
+                    @else
+                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    @endif
+
+                    <!-- Product Info -->
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="text-lg font-semibold text-gray-900">{{ $product->title }}</h3>
+                        <p class="mt-2 text-sm text-gray-500 line-clamp-3 flex-grow">{{ $product->description }}</p>
+                        <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                            <span class="text-lg font-bold text-gray-900">${{ number_format($product->price, 2) }}</span>
+                            <div class="flex space-x-2">
+                                <a href="{{ route('products.show', $product) }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors font-medium">
+                                    View
+                                </a>
+                                <a href="{{ route('products.show', $product) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors font-medium">
+                                    Purchase
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -73,9 +85,11 @@
                 @endforeach
             </div>
 
-            <div class="mt-6">
+            <!-- Pagination -->
+            <div class="mt-6 px-4 sm:px-0">
                 {{ $products->links() }}
             </div>
+
         </div>
     </div>
 </x-app-layout>

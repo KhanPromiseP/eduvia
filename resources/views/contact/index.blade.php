@@ -1,54 +1,10 @@
-<x-guest-layout>
-    <!-- Hero Section -->
-    <section class="flex-1 flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#FDFDFC] to-gray-100">
-        <div class="max-w-5xl mx-auto text-center">
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-800 leading-tight mb-6">
-                Achieve Financial Excellence with Our Digital Products & Expert Services
-            </h1>
-            <p class="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-                Explore courses and eBooks on wealth building, read our blog for actionable financial tips, and contact us for personalized services.
-            </p>
-        </div>
-    </section>
-
-    <!-- Blog Teaser Section -->
-    <section id="blog" class="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-16">Insights on Financial Excellence</h2>
-            <p class="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">Read our blog for tips on wealth building, investment strategies, and achieving financial success.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Blog Card 1 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Wealth+Tips" alt="Blog Post">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">5 Ways to Build Wealth in 2025</h3>
-                        <p class="text-gray-600 mb-4">Discover strategies to grow your finances this year.</p>
-                       
-                    </div>
-                </div>
-                <!-- Blog Card 2 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Investment+Guide" alt="Blog Post">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Beginner's Guide to Smart Investing</h3>
-                        <p class="text-gray-600 mb-4">Step-by-step tips for starting your investment journey.</p>
-                        
-                    </div>
-                </div>
-                <!-- Blog Card 3 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Budgeting+Secrets" alt="Blog Post">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Budgeting Secrets for Financial Freedom</h3>
-                        <p class="text-gray-600 mb-4">Learn how to manage your money effectively.</p>
-                        
-                    </div>
-                </div>
-            </div>
-           
-        </div>
-    </section>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Financial Excellence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -479,4 +435,4 @@
         });
     </script>
 </body>
-</x-guest-layout>
+</html>

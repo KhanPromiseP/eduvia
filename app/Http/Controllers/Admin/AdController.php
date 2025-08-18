@@ -21,9 +21,17 @@ class AdController extends Controller
 {
 public function index(Request $request)
 {
-    // Base query with eager loading
-    $ads = Ad::with(['user', 'product'])->forAdmin();
+    // Start with the admin scope that shows all ads
+    $ads = Ad::forAdmin();
 
+    // Apply filters only if they're explicitly requested
+    if ($request->has('status') && $status = $request->status) {
+        $ads->where('is_active', $status === 'active');
+    }
+
+    if ($request->has('search') && $search = $request->search) {
+        $ads->where('title', 'like', "%{$search}%");
+    }
     // Filters
     if ($status = $request->status) {
         $ads->where('is_active', $status === 'active');

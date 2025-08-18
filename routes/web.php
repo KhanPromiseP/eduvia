@@ -13,7 +13,10 @@ use App\Http\Controllers\Admin\SubscriberController;
 use App\Models\Ad;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Api\AdApiController;
-
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\CheckoutController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -102,8 +105,15 @@ Route::controller(\App\Http\Controllers\Admin\ProductController::class)->group(f
 // Other Public Routes
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
-Route::get('/services', [ContactController::class, 'show'])->name('services.show');
-Route::post('/services/contact', [ContactController::class, 'submit'])->name('contact.submit');
+Route::get('/contact/submit', [ContactController::class, 'submit'])->name('contact.submit');
+Route::get('/service', [ServiceController::class, 'index'])->name('service.index');
+
+
+Route::middleware(['auth'])->group(function() {
+    Route::get('checkout/{product}', [CheckoutController::class, 'show'])->name('checkout');
+    Route::post('checkout/{product}', [CheckoutController::class, 'pay'])->name('checkout.pay');
+    Route::get('download/{product}', [ProductController::class, 'download'])->name('products.download');
+});
 
 
 require __DIR__.'/auth.php';

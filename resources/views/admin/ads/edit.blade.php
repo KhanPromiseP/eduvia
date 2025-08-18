@@ -182,7 +182,7 @@
                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
                                   placeholder='{"device": "mobile", "hours": [9,10,11,12,13,14,15,16,17], "urls": ["/products", "/categories"]}'>{{ old('targeting', is_array($ad->targeting) ? json_encode($ad->targeting) : $ad->targeting) }}</textarea>
                         <p class="mt-1 text-xs text-gray-500">
-                            Example targeting options: device (mobile/tablet/desktop), hours (0-23), urls (path patterns)
+                            Example targeting options: device (mobile/tablet/desktop), hours (0-23), urls (path patterns),  like: {"device": "mobile", "hours": [9,10,11,12,13,14,15,16,17], "urls": ["/products", "/categories"]}
                         </p>
                         @error('targeting')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

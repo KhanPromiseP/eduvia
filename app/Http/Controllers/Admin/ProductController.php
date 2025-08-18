@@ -178,4 +178,17 @@ class ProductController extends Controller
 
         return view('products.show', compact('product'));
     }
+
+    public function download(Product $product)
+{
+    $user = auth()->user();
+
+    if(!$user->hasPaid($product->id)){
+        return redirect()->route('products.show', $product)
+                         ->with('error', 'You must complete payment first.');
+    }
+
+    return response()->download(storage_path('app/public/' . $product->file_path));
+}
+
 }
