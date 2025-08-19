@@ -17,43 +17,56 @@
 
     <!-- Digital Products Section -->
     <section id="products" class="py-24 px-4 sm:px-6 lg:px-8 bg-[#FDFDFC]">
-        <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-16">Our Digital Products for Financial Mastery</h2>
-            <p class="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">Discover courses and eBooks designed to help you excel financially, from investment strategies to wealth building fundamentals.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Product Card 1 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Wealth+Building+Course" alt="Product">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Wealth Building Course</h3>
-                        <p class="text-gray-600 mb-4">Learn proven strategies to build and grow your wealth in 2025.</p>
-                        <p class="text-indigo-600 font-bold mb-4">$49.99</p>
-                       
-                    </div>
-                </div>
-                <!-- Product Card 2 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Investment+eBook" alt="Product">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Investment Essentials eBook</h3>
-                        <p class="text-gray-600 mb-4">Expert tips on investing for long-term financial success.</p>
-                        <p class="text-indigo-600 font-bold mb-4">$19.99</p>
-                        
-                    </div>
-                </div>
-                <!-- Product Card 3 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Budgeting+Masterclass" alt="Product">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Budgeting Masterclass</h3>
-                        <p class="text-gray-600 mb-4">Master budgeting to achieve financial freedom.</p>
-                        <p class="text-indigo-600 font-bold mb-4">$29.99</p>
-                        
-                    </div>
+        <!-- Product Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
+    @foreach($products->shuffle()->take(3) as $product)
+    <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col mx-2 sm:mx-0">
+
+        <!-- Image -->
+        @if($product->thumbnail)
+            <div class="overflow-hidden">
+                <img src="{{ asset('storage/'.$product->thumbnail) }}" 
+                     alt="{{ $product->title }}" 
+                     class="w-full h-48 object-cover transform transition-transform duration-300 hover:scale-105">
+            </div>
+        @else
+            <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" 
+                     viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+        @endif
+
+        <!-- Product Info -->
+        <div class="p-5 flex flex-col flex-grow">
+            <h3 class="text-lg font-semibold text-gray-900">{{ $product->title }}</h3>
+            <p class="mt-2 text-sm text-gray-500 line-clamp-3 flex-grow">{{ $product->description }}</p>
+            <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                <span class="text-lg font-bold text-gray-900">${{ number_format($product->price, 2) }}</span>
+                <div class="flex space-x-2">
+                    <a href="{{ route('products.show', $product) }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors font-medium">
+                        View
+                    </a>
+                    <a href="{{ route('products.show', $product) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors font-medium">
+                        Purchase
+                    </a>
                 </div>
             </div>
-            
         </div>
+    </div>
+    @endforeach
+</div>
+
+<!-- View More Button -->
+<div class="flex justify-center mt-8">
+    <a href="{{ route('products.index') }}" 
+       class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold rounded-full shadow-lg transition-colors duration-300">
+        View More Products
+    </a>
+</div>
+
     </section>
 
     <!-- Blog Teaser Section -->
@@ -94,42 +107,19 @@
         </div>
     </section>
 
-    <!-- Services Section with Contact Form -->
-    <section id="services" class="py-24 px-4 sm:px-6 lg:px-8 bg-[#FDFDFC]">
+
         <div class="max-w-7xl mx-auto">
             <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-16">Our Financial Services</h2>
             <p class="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">Get personalized advice on wealth management, investments, and financial planning. Contact us to get started.</p>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div class="bg-white p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Personalized Financial Consulting</h3>
-                    <p class="text-gray-600 mb-6">Tailored strategies to help you achieve financial goals.</p>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Investment Advisory</h3>
-                    <p class="text-gray-600 mb-6">Expert guidance on smart investments for growth.</p>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Wealth Building Workshops</h3>
-                    <p class="text-gray-600">Interactive sessions for financial literacy.</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-6">Contact Us for Services</h3>
-                    <form action="{{ route('contact.submit') }}" method="POST" class="space-y-4">
-                        @csrf
-                        <div>
-                            <label for="name" class="block text-gray-700 font-medium mb-2">Name</label>
-                            <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
-                            <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label for="message" class="block text-gray-700 font-medium mb-2">Message</label>
-                            <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none transition-colors"></textarea>
-                        </div>
-                        <button type="submit" class="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg">Send Message</button>
-                    </form>
-                </div>
-            </div>
+             <div class="flex items-center justify-center">
+                <a href="/contact" 
+                class="flex items-center justify-center px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold rounded-full shadow-lg transition-colors duration-300">
+                    Contact Us
+                </a>
+          
+
         </div>
-    </section>
+  
 
     <!-- Testimonials Section -->
     <section class="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">

@@ -97,8 +97,17 @@ return [
             'retry_after' => 60,
         ],
 
+      
+
+
     ],
 
+
+    'to' => [
+        'address' => env('MAIL_TO_ADDRESS', 'khanpennpromise@gmail.com'),
+        'name' => env('MAIL_TO_NAME', 'Admin'),
+    ],
+    
     /*
     |--------------------------------------------------------------------------
     | Global "From" Address

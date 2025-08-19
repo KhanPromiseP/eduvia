@@ -27,6 +27,8 @@ return new class extends Migration
             $table->index('ip_address');
             $table->index('viewed_at');
         });
+
+        
     }
 
     public function down()

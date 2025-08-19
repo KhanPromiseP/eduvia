@@ -21,7 +21,11 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         //admin user seeder
-        $this->call(AdminUserSeeder::class);
+        $this->call([
+            AdminUserSeeder::class,
+            AdsTableSeeder::class,
+
+        ]);
 
 
     }

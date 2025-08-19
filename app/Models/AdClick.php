@@ -26,12 +26,7 @@ class AdClick extends Model
         'clicked_at' => 'datetime',
     ];
 
-    protected $dates = [
-        'clicked_at',
-        'created_at',
-        'updated_at',
-    ];
-
+  
     /**
      * Get the ad that was clicked.
      */

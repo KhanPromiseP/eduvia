@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Http;  // Add this line
+
 class AdController extends Controller
 {
 public function index(Request $request)
@@ -180,22 +182,176 @@ public function index(Request $request)
     /**
      * Display the specified ad with analytics.
      */
-    public function show(Ad $ad)
-    {
-        $ad->loadCount(['views', 'clicks']);
+   public function show(Ad $ad)
+{
+    // Basic counts
+    $ad->loadCount(['views', 'clicks', 'timeSpent']);
+    
+    // Date range for analytics (last 30 days)
+    $startDate = now()->subDays(30);
+    $endDate = now();
+    
+    // Time-based analytics
+    $dailyStats = $this->getDailyStats($ad, $startDate, $endDate);
+    $hourlyStats = $this->getHourlyStats($ad, $startDate, $endDate);
+    $weekdayStats = $this->getWeekdayStats($ad, $startDate, $endDate);
+    
+    // Device stats
+    $deviceStats = $this->getDeviceStats($ad, $startDate, $endDate);
+    
+    // Geographic stats
+    $geoStats = $this->getGeoStats($ad, $startDate, $endDate);
+    
+    // Referrer stats
+    $topReferrers = $this->getTopReferrers($ad, $startDate, $endDate);
+    
+    // Time spent analytics
+    $timeSpentStats = $this->getTimeSpentStats($ad);
+    
+    // Performance metrics
+    $ctr = $this->calculateCTR($ad, $startDate, $endDate);
+    $engagementRate = $this->calculateEngagementRate($ad, $startDate, $endDate);
+    
+    // First/last events
+    $firstImpression = $ad->views()->orderBy('viewed_at')->first();
+    $lastImpression = $ad->views()->orderByDesc('viewed_at')->first();
+    $firstClick = $ad->clicks()->orderBy('clicked_at')->first();
+    $lastClick = $ad->clicks()->orderByDesc('clicked_at')->first();
+    
+    $analytics = [
+        'total_views' => $ad->views_count,
+        'total_clicks' => $ad->clicks_count,
+        'ctr' => $ctr,
+        'engagement_rate' => $engagementRate,
+        'total_time_spent' => $timeSpentStats['total'],
+        'avg_time_spent' => $timeSpentStats['average'],
+        'daily_stats' => $dailyStats,
+        'hourly_stats' => $hourlyStats,
+        'weekday_stats' => $weekdayStats,
+        'device_stats' => $deviceStats,
+        'geo_stats' => $geoStats,
+        'top_referrers' => $topReferrers,
+        'first_impression' => $firstImpression?->viewed_at,
+        'last_impression' => $lastImpression?->viewed_at,
+        'first_click' => $firstClick?->clicked_at,
+        'last_click' => $lastClick?->clicked_at,
+        'cost_per_click' => $this->calculateCostPerClick($ad),
+    ];
 
-        $analytics = [
-            'total_views' => $ad->views_count ?? 0,
-            'total_clicks' => $ad->clicks_count ?? 0,
-            'ctr' => $this->calculateCTR($ad),
-            'total_time_spent' => $this->getTotalTimeSpent($ad),
-            'daily_stats' => $this->getDailyStats($ad),
-            'device_stats' => $this->getDeviceStats($ad),
-            'top_referrers' => $this->getTopReferrers($ad),
-        ];
+    return view('admin.ads.show', compact('ad', 'analytics'));
+}
 
-        return view('admin.ads.show', compact('ad', 'analytics'));
+// Helper methods for analytics:
+
+protected function getDailyStats(Ad $ad, $startDate, $endDate)
+{
+    return $ad->views()
+        ->selectRaw('DATE(viewed_at) as date, COUNT(*) as views')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('date')
+        ->orderBy('date')
+        ->get()
+        ->mapWithKeys(function ($item) {
+            return [$item->date => $item->views];
+        });
+}
+
+protected function getHourlyStats(Ad $ad, $startDate, $endDate)
+{
+    $stats = $ad->views()
+        ->selectRaw('HOUR(viewed_at) as hour, COUNT(*) as count')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('hour')
+        ->orderBy('hour')
+        ->get();
+    
+    $hourly = array_fill(0, 24, 0);
+    foreach ($stats as $stat) {
+        $hourly[$stat->hour] = $stat->count;
     }
+    
+    return $hourly;
+}
+
+protected function getWeekdayStats(Ad $ad, $startDate, $endDate)
+{
+    return $ad->views()
+        ->selectRaw('DAYOFWEEK(viewed_at) as weekday, COUNT(*) as count')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('weekday')
+        ->orderBy('weekday')
+        ->get()
+        ->mapWithKeys(function ($item) {
+            return [$item->weekday => $item->count];
+        });
+}
+
+protected function getDeviceStats(Ad $ad, $startDate, $endDate)
+{
+    return $ad->views()
+        ->selectRaw('
+            CASE 
+                WHEN viewport_width <= 768 THEN "Mobile"
+                WHEN viewport_width <= 1024 THEN "Tablet"
+                ELSE "Desktop"
+            END as device_type,
+            COUNT(*) as count
+        ')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('device_type')
+        ->get();
+}
+
+protected function getGeoStats(Ad $ad, $startDate, $endDate)
+{
+    return $ad->views()
+        ->selectRaw('country, city, COUNT(*) as count')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->whereNotNull('country')
+        ->groupBy('country', 'city')
+        ->orderByDesc('count')
+        ->limit(10)
+        ->get();
+}
+
+protected function getTimeSpentStats(Ad $ad)
+{
+    $total = $ad->timeSpent()->sum('time_spent');
+    $average = $ad->views_count > 0 ? $total / $ad->views_count : 0;
+    
+    return [
+        'total' => $total,
+        'average' => round($average, 2),
+    ];
+}
+
+protected function calculateCTR(Ad $ad, $startDate, $endDate)
+{
+    $views = $ad->views()->whereBetween('viewed_at', [$startDate, $endDate])->count();
+    $clicks = $ad->clicks()->whereBetween('clicked_at', [$startDate, $endDate])->count();
+    
+    return $views > 0 ? round(($clicks / $views) * 100, 2) : 0;
+}
+
+protected function calculateEngagementRate(Ad $ad, $startDate, $endDate)
+{
+    $views = $ad->views()->whereBetween('viewed_at', [$startDate, $endDate])->count();
+    $engaged = $ad->timeSpent()
+        ->where('time_spent', '>', 5) // Consider >5 seconds as engaged
+        ->whereBetween('last_tracked_at', [$startDate, $endDate])
+        ->count();
+    
+    return $views > 0 ? round(($engaged / $views) * 100, 2) : 0;
+}
+
+protected function calculateCostPerClick(Ad $ad)
+{
+    if (!$ad->budget || $ad->clicks_count == 0) {
+        return 0;
+    }
+    
+    return round($ad->budget / $ad->clicks_count, 4);
+}
 
     /**
      * Show the form for editing the specified ad.
@@ -317,73 +473,161 @@ public function index(Request $request)
         ]);
     }
 
-    /**
-     * Track ad view.
-     */
-    public function trackView(Request $request): JsonResponse
-    {
-        try {
-            $request->validate([
-                'ad_id' => 'required|exists:ads,id',
-                'timestamp' => 'required|integer',
-                'url' => 'required|url',
-                'viewport' => 'array',
-            ]);
+// AdController.php
 
-            AdView::create([
-                'ad_id' => $request->ad_id,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'referrer' => $request->referrer,
-                'url' => $request->url,
-                'viewport_width' => $request->input('viewport.width'),
-                'viewport_height' => $request->input('viewport.height'),
-                'viewed_at' => Carbon::createFromTimestamp($request->timestamp / 1000),
-            ]);
+public function trackView(Request $request): JsonResponse
+{
+    try {
+        $validated = $request->validate([
+            'ad_id' => 'required|exists:ads,id',
+            'timestamp' => 'required|integer',
+            'url' => 'required|url',
+            'viewport' => 'required|array',
+            'viewport.width' => 'required|integer',
+            'viewport.height' => 'required|integer',
+            'session_id' => 'required|string',
+        ]);
 
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            Log::error('Ad view tracking failed', [
-                'error' => $e->getMessage(),
-                'request' => $request->all()
-            ]);
+        // Get geo data from IP
+        $geoData = $this->getGeoData($request->ip());
 
-            return response()->json(['success' => false], 500);
-        }
+        AdView::create([
+            'ad_id' => $validated['ad_id'],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'referrer' => $request->header('referer'),
+            'url' => $validated['url'],
+            'viewport_width' => $validated['viewport']['width'],
+            'viewport_height' => $validated['viewport']['height'],
+            'viewed_at' => Carbon::createFromTimestampMs($validated['timestamp']),
+            'session_id' => $validated['session_id'],
+            'country' => $geoData['country'] ?? null,
+            'city' => $geoData['city'] ?? null,
+        ]);
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        Log::error('Ad view tracking failed', ['error' => $e->getMessage()]);
+        return response()->json(['success' => false], 500);
     }
+}
 
-    /**
-     * Track ad click.
-     */
-    public function trackClick(Request $request): JsonResponse
-    {
+public function trackClick(Request $request): JsonResponse
+{
+    try {
+        $validated = $request->validate([
+            'ad_id' => 'required|exists:ads,id',
+            'timestamp' => 'required|integer',
+            'url' => 'required|url',
+            'target_url' => 'nullable|url', // Explicitly allow null
+            'session_id' => 'required|string',
+            'placement' => 'sometimes|string' // Added placement if needed
+        ]);
+
+        // Get geo data
+        $geoData = [];
         try {
-            $request->validate([
-                'ad_id' => 'required|exists:ads,id',
-                'timestamp' => 'required|integer',
-                'url' => 'required|url',
-                'target_url' => 'nullable|url',
-            ]);
-
-            AdClick::create([
-                'ad_id' => $request->ad_id,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'referrer' => $request->url,
-                'target_url' => $request->target_url,
-                'clicked_at' => Carbon::createFromTimestamp($request->timestamp / 1000),
-            ]);
-
-            return response()->json(['success' => true]);
+            $geoData = Http::get("http://ip-api.com/json/{$request->ip()}?fields=country,city")
+                         ->json();
         } catch (\Exception $e) {
-            Log::error('Ad click tracking failed', [
-                'error' => $e->getMessage(),
-                'request' => $request->all()
-            ]);
-
-            return response()->json(['success' => false], 500);
+            Log::warning('Geo IP lookup failed', ['error' => $e->getMessage()]);
         }
+
+        // Create click record with fallback for target_url
+        AdClick::create([
+            'ad_id' => $validated['ad_id'],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'referrer' => $validated['url'],
+            'target_url' => $validated['target_url'] ?? $validated['url'], // Fallback to referrer if null
+            'clicked_at' => Carbon::createFromTimestampMs($validated['timestamp']),
+            'session_id' => $validated['session_id'],
+            'country' => $geoData['country'] ?? null,
+            'city' => $geoData['city'] ?? null,
+        ]);
+
+        return response()->json(['success' => true]);
+
+    } catch (\Exception $e) {
+        Log::error('Ad click tracking failed', [
+            'error' => $e->getMessage(),
+            'request' => $request->all(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json(['success' => false], 500);
     }
+}
+
+// public function trackTimeSpent(Request $request): JsonResponse
+// {
+//     DB::beginTransaction();
+    
+//     try {
+//         // Validate with strict rules
+//         $validated = $request->validate([
+//             'ad_id' => 'required|integer|exists:ads,id',
+//             'session_id' => 'required|string|max:255',
+//             'time_spent' => 'required|numeric|min:0|max:999999.99',
+//             'last_tracked_at' => 'required|integer|min:0',
+//             'placement' => 'sometimes|string|max:50'
+//         ]);
+
+//         // Convert and format all data before saving
+//         $timeSpent = (float)number_format($validated['time_spent'], 2, '.', '');
+//         $timestamp = $validated['last_tracked_at'];
+//         $lastTrackedAt = (strlen($timestamp) === 13) 
+//             ? Carbon::createFromTimestampMs($timestamp)
+//             : Carbon::createFromTimestamp($timestamp);
+
+//         // Use updateOrCreate but with pre-formatted values
+//         $record = AdTimeSpent::updateOrCreate(
+//             [
+//                 'ad_id' => $validated['ad_id'],
+//                 'session_id' => $validated['session_id']
+//             ],
+//             [
+//                 'ip_address' => $request->ip(),
+//                 'user_agent' => substr($request->userAgent() ?? '', 0, 512),
+//                 'time_spent' => $timeSpent,
+//                 'last_tracked_at' => $lastTrackedAt,
+//                 'placement' => $validated['placement'] ?? null
+//             ]
+//         );
+
+//         DB::commit();
+
+//         return response()->json(['success' => true]);
+
+//     } catch (\Exception $e) {
+//         DB::rollBack();
+        
+//         Log::error('Time spent tracking failed', [
+//             'error' => $e->getMessage(),
+//             'trace' => $e->getTraceAsString(),
+//             'request' => $request->all()
+//         ]);
+        
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Tracking failed',
+//             'error' => $e->getMessage()
+//         ], 500);
+//     }
+// }
+
+
+protected function getGeoData($ip): array
+{
+    // Use a geo IP service or local database
+    // Example with freegeoip.app (rate limited)
+    try {
+        $response = Http::get("http://ip-api.com/json/{$ip}?fields=country,city");
+        return $response->json();
+    } catch (\Exception $e) {
+        Log::error('Geo IP lookup failed', ['error' => $e->getMessage()]);
+        return [];
+    }
+}
 
     /**
      * Track ad close.
@@ -479,17 +723,17 @@ public function index(Request $request)
     /**
      * Calculate Click-Through Rate (CTR) for an ad.
      */
-    protected function calculateCTR(Ad $ad): float
-    {
-        $views = $ad->views_count ?? $ad->views()->count();
-        $clicks = $ad->clicks_count ?? $ad->clicks()->count();
+    // protected function calculateCTR(Ad $ad): float
+    // {
+    //     $views = $ad->views_count ?? $ad->views()->count();
+    //     $clicks = $ad->clicks_count ?? $ad->clicks()->count();
 
-        if ($views === 0) {
-            return 0.0;
-        }
+    //     if ($views === 0) {
+    //         return 0.0;
+    //     }
 
-        return round(($clicks / $views) * 100, 2);
-    }
+    //     return round(($clicks / $views) * 100, 2);
+    // }
 
     /**
      * Apply targeting filters to ad query.
@@ -543,39 +787,39 @@ public function index(Request $request)
     /**
      * Get daily statistics for an ad.
      */
-    protected function getDailyStats(Ad $ad, int $days = 30): array
-    {
-        $startDate = now()->subDays($days);
+    // protected function getDailyStats(Ad $ad, int $days = 30): array
+    // {
+    //     $startDate = now()->subDays($days);
         
-        return DB::table('ad_views')
-            ->selectRaw('DATE(viewed_at) as date, COUNT(*) as views')
-            ->where('ad_id', $ad->id)
-            ->where('viewed_at', '>=', $startDate)
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->toArray();
-    }
+    //     return DB::table('ad_views')
+    //         ->selectRaw('DATE(viewed_at) as date, COUNT(*) as views')
+    //         ->where('ad_id', $ad->id)
+    //         ->where('viewed_at', '>=', $startDate)
+    //         ->groupBy('date')
+    //         ->orderBy('date')
+    //         ->get()
+    //         ->toArray();
+    // }
 
     /**
      * Get device statistics for an ad.
      */
-    protected function getDeviceStats(Ad $ad): array
-    {
-        return DB::table('ad_views')
-            ->selectRaw('
-                CASE 
-                    WHEN viewport_width <= 768 THEN "Mobile"
-                    WHEN viewport_width <= 1024 THEN "Tablet"
-                    ELSE "Desktop"
-                END as device_type,
-                COUNT(*) as count
-            ')
-            ->where('ad_id', $ad->id)
-            ->groupBy('device_type')
-            ->get()
-            ->toArray();
-    }
+    // protected function getDeviceStats(Ad $ad): array
+    // {
+    //     return DB::table('ad_views')
+    //         ->selectRaw('
+    //             CASE 
+    //                 WHEN viewport_width <= 768 THEN "Mobile"
+    //                 WHEN viewport_width <= 1024 THEN "Tablet"
+    //                 ELSE "Desktop"
+    //             END as device_type,
+    //             COUNT(*) as count
+    //         ')
+    //         ->where('ad_id', $ad->id)
+    //         ->groupBy('device_type')
+    //         ->get()
+    //         ->toArray();
+    // }
 
     /**
      * Get top referrers for an ad.

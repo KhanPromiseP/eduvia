@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -19,18 +18,14 @@ class AdTimeSpent extends Model
         'user_agent',
         'time_spent',
         'last_tracked_at',
+        'placement'
     ];
 
     protected $casts = [
         'time_spent' => 'float',
-        'last_tracked_at' => 'datetime',
+        'last_tracked_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    /**
-     * Link back to the ad
-     */
-    public function ad()
-    {
-        return $this->belongsTo(Ad::class);
-    }
+    protected $dateFormat = 'Y-m-d H:i:s';
+
 }

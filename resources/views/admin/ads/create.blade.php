@@ -220,14 +220,14 @@ document.addEventListener('DOMContentLoaded', function() {
         'interstitial': 'Enter HTML content for full-screen ads.'
     };
 
-    const placementAllowed = {
-        'image': ['header','sidebar','footer'],
-        'video': ['header','sidebar','footer'],
-        'banner': ['header','sidebar','footer'],
-        'popup': ['popup'],
-        'persistent': ['footer'],
-        'interstitial': ['interstitial']
-    };
+    // const placementAllowed = {
+    //     'image': ['header','sidebar','footer'],
+    //     'video': ['header','sidebar','footer'],
+    //     'banner': ['header','sidebar','footer'],
+    //     'popup': ['popup'],
+    //     'persistent': ['footer'],
+    //     'interstitial': ['interstitial']
+    // };
 
     typeField.addEventListener('change', function() {
         const type = this.value;

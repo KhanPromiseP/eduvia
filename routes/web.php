@@ -17,44 +17,21 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\DashboardController;
+
+
+
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-// Route::get('/dashboard', function () {
-//     $placement = 'dashboard'; // or whatever placement you want
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
-//     $ads = Ad::active()
-//         ->currentlyRunning()
-//         ->where('placement', 'like', "%{$placement}%")
-//         ->get();
-
-//     return view('dashboard', compact('ads'));
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
-
-Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
-    $now = Carbon::now();
-
-    // Fetch active ads, currently running, targeted for sidebar or dashboard
-    $ads = Ad::where('is_active', true)
-        ->where(function($query) use ($now) {
-            $query->whereNull('start_at')->orWhere('start_at', '<=', $now);
-        })
-        ->where(function($query) use ($now) {
-            $query->whereNull('end_at')->orWhere('end_at', '>=', $now);
-        })
-        ->where('placement', 'like', '%dashboard%')  // or use 'sidebar' or any placement you prefer
-        ->get();
-
-    return view('dashboard', compact('ads'));
-})->name('dashboard');
 
 
 
@@ -63,6 +40,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+
+
+
+// Public Product Routes (using Admin\ProductController)
+Route::controller(\App\Http\Controllers\Admin\ProductController::class)->group(function () {
+    Route::get('/products', 'publicIndex')->name('products.index');
+    Route::get('/products/{product}', 'publicShow')->name('products.show');
+});
+
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -93,23 +81,21 @@ Route::prefix('ads')->group(function () {
 
 
 
-// Public Product Routes (using Admin\ProductController)
-Route::controller(\App\Http\Controllers\Admin\ProductController::class)->group(function () {
-    Route::get('/products', 'publicIndex')->name('products.index');
-    Route::get('/products/{product}', 'publicShow')->name('products.show');
-});
-
 
 
 
 // Other Public Routes
-Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
-Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
-Route::get('/contact/submit', [ContactController::class, 'submit'])->name('contact.submit');
-Route::get('/service', [ServiceController::class, 'index'])->name('service.index');
+
 
 
 Route::middleware(['auth'])->group(function() {
+    Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+    Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+    Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.submit');
+    Route::get('/service', [ServiceController::class, 'index'])->name('service.index');
+
+
+
     Route::get('checkout/{product}', [CheckoutController::class, 'show'])->name('checkout');
     Route::post('checkout/{product}', [CheckoutController::class, 'pay'])->name('checkout.pay');
     Route::get('download/{product}', [ProductController::class, 'download'])->name('products.download');

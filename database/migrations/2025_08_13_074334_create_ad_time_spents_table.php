@@ -8,28 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('ad_time_spent', function (Blueprint $table) {
-            $table->id();
+       Schema::create('ad_time_spent', function (Blueprint $table) {
+        $table->id();
+        
+        $table->foreignId('ad_id')
+            ->constrained()
+            ->cascadeOnDelete();
+        
+        $table->string('session_id', 255);
+        $table->string('ip_address', 45)->nullable();
+        $table->text('user_agent')->nullable();
+        $table->float('time_spent', 10, 2)->default(0.00);
+        $table->timestamp('last_tracked_at')->nullable();
+        $table->string('placement', 50)->nullable();
+        
+        $table->timestamps();
+        
+        $table->unique(['ad_id', 'session_id']);
+        $table->index(['ad_id', 'last_tracked_at']);
+    });
 
-            // Link to the ad
-            $table->foreignId('ad_id')->constrained('ads', 'id')->onDelete('cascade')->name('fk_ad_time_spents_ad'); // <-- unique name to prevent duplicate error
-
-            // Session & user tracking
-            $table->string('session_id')->index();
-            $table->string('ip_address')->nullable();
-            $table->text('user_agent')->nullable();
-
-            // Total time spent in seconds
-            $table->decimal('time_spent', 10, 2)->default(0);
-
-            // Last tracked timestamp
-            $table->timestamp('last_tracked_at')->nullable();
-
-            $table->timestamps();
-
-            // Unique per ad per session
-            $table->unique(['ad_id', 'session_id']);
-        });
     }
 
     public function down(): void

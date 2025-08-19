@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Contact Us - Financial Excellence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -37,8 +38,8 @@
                             '100%': { opacity: '1' }
                         },
                         'pulse-glow': {
-                            '0%, 100%': { boxShadow: '0 0 5px rgba(255, 107, 53, 0.5)' },
-                            '50%': { boxShadow: '0 0 20px rgba(255, 107, 53, 0.8)' }
+                            '0%, 100%': { boxShadow: '0 0 5px rgba(53, 114, 255, 0.5)' },
+                            '50%': { boxShadow: '0 0 20px rgba(53, 181, 255, 0.8)' }
                         },
                         'shake': {
                             '0%, 100%': { transform: 'translateX(0)' },
@@ -94,8 +95,27 @@
             transform: translateY(-2px);
         }
         
-        .success-message {
+        .error-message-container {
+            background: linear-gradient(135deg, #DC2626, #B91C1C);
+        }
+
+        .success-message-container {
             background: linear-gradient(135deg, #10B981, #059669);
+        }
+
+        .message-slide-in {
+            animation: slide-up 0.5s ease-out forwards;
+        }
+
+        @keyframes slide-up {
+            0% { 
+                transform: translateY(20px); 
+                opacity: 0;
+            }
+            100% { 
+                transform: translateY(0); 
+                opacity: 1;
+            }
         }
         
         .error-shake {
@@ -104,6 +124,7 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-dark via-gray-900 to-primary text-white min-h-screen">
+    
     <x-app-layout>
         <!-- Hero Section -->
         <section class="relative py-16 px-4 overflow-hidden">
@@ -139,14 +160,31 @@
                                 Send Us a Message
                             </h2>
                             
+                            <!-- Error Message -->
+                            <div id="error-message" class="hidden error-message-container rounded-xl p-6 mb-8 message-slide-in">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-circle text-2xl mr-4"></i>
+                                    <div class="flex-grow">
+                                        <h3 class="font-bold text-lg">Error Sending Message</h3>
+                                        <p id="error-message-text" class="text-red-100">Please check the form and try again.</p>
+                                    </div>
+                                    <button class="ml-4 text-white hover:text-gray-200 focus:outline-none" onclick="document.getElementById('error-message').classList.add('hidden')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <!-- Success Message -->
-                            <div id="success-message" class="hidden success-message rounded-xl p-6 mb-8 animate-slide-up">
+                            <div id="success-message" class="hidden success-message-container rounded-xl p-6 mb-8 message-slide-in">
                                 <div class="flex items-center">
                                     <i class="fas fa-check-circle text-2xl mr-4"></i>
-                                    <div>
+                                    <div class="flex-grow">
                                         <h3 class="font-bold text-lg">Message Sent Successfully!</h3>
-                                        <p class="text-green-100">We'll get back to you within 24 hours.</p>
+                                        <p id="success-message-text" class="text-green-100">We'll get back to you within 24 hours.</p>
                                     </div>
+                                    <button class="ml-4 text-white hover:text-gray-200 focus:outline-none" onclick="document.getElementById('success-message').classList.add('hidden')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
                             </div>
 
@@ -160,7 +198,7 @@
                                             type="text" 
                                             name="firstName"
                                             required
-                                            class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 input-focus transition-all duration-300"
+                                            class="w-full px-4 py-3 bg-gray-100 border border-gray-600 rounded-xl text-gray-800 placeholder-gray-400 input-focus transition-all duration-300"
                                             placeholder="Enter your name"
                                         >
                                         <span class="error-message text-red-400 text-sm mt-1 hidden"></span>
@@ -174,16 +212,12 @@
                                             type="email" 
                                             name="email"
                                             required
-                                            class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 input-focus transition-all duration-300"
+                                            class="w-full px-4 py-3 bg-gray-100 border border-gray-600 rounded-xl text-gray-800 placeholder-gray-400 input-focus transition-all duration-300"
                                             placeholder="your.email@example.com"
                                         >
                                         <span class="error-message text-red-400 text-sm mt-1 hidden"></span>
                                     </div>
-
-                                    
                                 </div>
-
-                              
 
                                 <div class="form-field">
                                     <label class="block text-sm font-semibold mb-2 text-gray-500">
@@ -191,7 +225,7 @@
                                     </label>
                                     <select 
                                         name="service"
-                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white input-focus transition-all duration-300"
+                                        class="w-full px-4 py-3 bg-gray-100 border border-gray-600 rounded-xl text-gray-700 input-focus transition-all duration-300"
                                     >
                                         <option value="">Select a service...</option>
                                         <option value="consultation">Personal Consultation</option>
@@ -200,10 +234,9 @@
                                         <option value="training">Investment Training</option>
                                         <option value="tax">Tax Optimization</option>
                                         <option value="digital">Digital Products</option>
-                                        <option value="other">Other</option>
+                                        <option value="other">Others</option>
                                     </select>
                                 </div>
-
 
                                 <div class="form-field">
                                     <label class="block text-sm font-semibold mb-2 text-gray-500">
@@ -213,7 +246,7 @@
                                         name="message"
                                         required
                                         rows="5"
-                                        class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 input-focus transition-all duration-300 resize-none"
+                                        class="w-full px-4 py-3 bg-gray-100 border border-gray-600 rounded-xl text-gray-800 placeholder-gray-400 input-focus transition-all duration-300 resize-none"
                                         placeholder="Tell us about your financial goals and how we can help you achieve them..."
                                     ></textarea>
                                     <span class="error-message text-red-400 text-sm mt-1 hidden"></span>
@@ -221,7 +254,7 @@
 
                                 <div class="form-field">
                                     <label class="flex items-center cursor-pointer">
-                                        <input type="checkbox" name="newsletter" class="mr-3 w-5 h-5 text-accent bg-gray-800 border-gray-600 rounded focus:ring-accent">
+                                        <input type="checkbox" name="newsletter" class="mr-3 w-5 h-5 text-accent bg-gray-100 border-green-600 rounded focus:ring-accent">
                                         <span class="text-sm text-gray-500">
                                             Subscribe to our newsletter for financial tips and market insights
                                         </span>
@@ -231,7 +264,7 @@
                                 <button 
                                     type="submit" 
                                     id="submit-btn"
-                                    class="w-full bg-gradient-to-r from-accent to-orange-600 hover:from-orange-600 hover:to-accent py-4 rounded-xl font-bold text-lg transition-all duration-300 btn-glow transform hover:scale-105 flex items-center justify-center"
+                                    class="w-full bg-blue-500 hover:bg-blue-600 py-4 rounded-xl font-bold text-lg transition-all duration-300 btn-glow transform hover:scale-105 flex items-center justify-center"
                                 >
                                     <span id="btn-text">
                                         <i class="fas fa-paper-plane mr-3"></i>Send Message
@@ -257,21 +290,21 @@
                                 <div class="flex items-start">
                                     <i class="fas fa-phone text-gold mr-4 mt-1"></i>
                                     <div>
-                                        <p class="font-semibold">Phone</p>
+                                        <p class="font-semibold text-gray-700">Phone</p>
                                         <p class="text-gray-500 text-sm">+(680) 854 767</p>
                                     </div>
                                 </div>
-                                <div class="flex items-start">
+                                <div class="flex items-start ">
                                     <i class="fas fa-envelope text-secondary mr-4 mt-1"></i>
                                     <div>
-                                        <p class="font-semibold">Email</p>
+                                        <p class="font-semibold text-gray-700">Email</p>
                                         <p class="text-gray-500 text-sm">khanpromise30@gmail.com</p>
                                     </div>
                                 </div>
                                 <div class="flex items-start">
                                     <i class="fas fa-clock text-purple-400 mr-4 mt-1"></i>
                                     <div>
-                                        <p class="font-semibold">Business Hours</p>
+                                        <p class="font-semibold text-gray-700">Business Hours</p>
                                         <p class="text-gray-500 text-sm">Mon-Fri: 9:00 AM - 6:00 PM <br>Sat: 10:00 AM - 2:00 PM </p>
                                     </div>
                                 </div>
@@ -289,10 +322,12 @@
                                     <i class="fas fa-calendar-plus mr-3"></i>
                                     Schedule Consultation
                                 </button>
-                                <button class="w-full bg-green-600 hover:bg-green-700 py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center">
+                                <a href="https://wa.me/{{ env('WHATSAPP_NUMBER') }}" target="_blank" 
+                                class="w-full bg-green-600 hover:bg-green-700 py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center">
                                     <i class="fab fa-whatsapp mr-3"></i>
                                     WhatsApp Chat
-                                </button>
+                                </a>
+
                                 <button class="w-full bg-purple-600 hover:bg-purple-700 py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center">
                                     <i class="fas fa-download mr-3"></i>
                                     Free Resources
@@ -328,111 +363,157 @@
     </x-app-layout>
 
     <script>
-        // Form validation and submission
-        document.getElementById('contact-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submit-btn');
-            const btnText = document.getElementById('btn-text');
-            const btnLoading = document.getElementById('btn-loading');
-            const successMessage = document.getElementById('success-message');
-            
-            // Clear previous errors
-            document.querySelectorAll('.error-message').forEach(error => {
-                error.classList.add('hidden');
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission handler
+    document.getElementById('contact-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoading = document.getElementById('btn-loading');
+        const successMessage = document.getElementById('success-message');
+        const successMessageText = document.getElementById('success-message-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorMessageText = document.getElementById('error-message-text');
+        const formData = new FormData(form);
+        
+        // Hide all messages and clear errors
+        successMessage.classList.add('hidden');
+        errorMessage.classList.add('hidden');
+        document.querySelectorAll('.error-message').forEach(error => {
+            error.classList.add('hidden');
+        });
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        btnText.classList.add('hidden');
+        btnLoading.classList.remove('hidden');
+        
+        try {
+            const response = await fetch('{{ route("contact.submit") }}', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: formData
             });
             
-            // Basic validation
-            let isValid = true;
-            const requiredFields = ['firstName', 'lastName', 'email', 'message'];
+            const data = await response.json();
             
-            requiredFields.forEach(fieldName => {
-                const field = document.querySelector(`[name="${fieldName}"]`);
-                const errorSpan = field.nextElementSibling;
-                
-                if (!field.value.trim()) {
-                    errorSpan.textContent = 'This field is required';
-                    errorSpan.classList.remove('hidden');
-                    field.parentElement.classList.add('error-shake');
-                    isValid = false;
+            if (!response.ok) {
+                // Handle validation errors
+                if (data.errors) {
+                    Object.entries(data.errors).forEach(([field, messages]) => {
+                        const input = form.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            const errorSpan = input.nextElementSibling;
+                            errorSpan.textContent = messages[0];
+                            errorSpan.classList.remove('hidden');
+                            input.parentElement.classList.add('error-shake');
+                            
+                            setTimeout(() => {
+                                input.parentElement.classList.remove('error-shake');
+                            }, 500);
+                        }
+                    });
                     
-                    setTimeout(() => {
-                        field.parentElement.classList.remove('error-shake');
-                    }, 500);
+                    // Show general error message
+                    errorMessageText.textContent = 'Please correct the highlighted errors in the form.';
+                    errorMessage.classList.remove('hidden');
+                    errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    throw new Error(data.message || 'Form submission failed');
                 }
-            });
-            
-            // Email validation
-            const emailField = document.querySelector('[name="email"]');
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (emailField.value && !emailRegex.test(emailField.value)) {
-                const errorSpan = emailField.nextElementSibling;
-                errorSpan.textContent = 'Please enter a valid email address';
-                errorSpan.classList.remove('hidden');
-                isValid = false;
+            } else {
+                // Success - update message with dynamic content
+                successMessage.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-2xl mr-4"></i>
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-lg">Message Sent Successfully!</h3>
+                            <p>We've sent a confirmation email to <strong>${formData.get('email')}</strong> with helpful resources. 
+                                <span class="text-red-500 text-sm">Check your inbox!</span>
+                            </p>
+                        </div>
+                        <button class="ml-4 text-white hover:text-gray-200 focus:outline-none" onclick="document.getElementById('success-message').classList.add('hidden')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+
+                successMessage.classList.add('message-slide-in');
+                successMessage.classList.remove('hidden');
+                form.reset();
+                
+                // Scroll to success message
+                successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             
-            if (!isValid) return;
+        } catch (error) {
+            console.error('Error:', error);
             
-            // Show loading state
-            submitBtn.disabled = true;
-            btnText.classList.add('hidden');
-            btnLoading.classList.remove('hidden');
+            // Show error message
+            errorMessageText.textContent = error.message || 'An unexpected error occurred. Please try again later.';
+            errorMessage.classList.remove('hidden');
+            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Simulate form submission
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Show success message
-            successMessage.classList.remove('hidden');
-            this.reset();
-            
+        } finally {
             // Reset button state
             submitBtn.disabled = false;
             btnText.classList.remove('hidden');
             btnLoading.classList.add('hidden');
             
-            // Scroll to success message
-            successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Hide success message after 5 seconds
+            // Hide messages after 8 seconds
             setTimeout(() => {
                 successMessage.classList.add('hidden');
-            }, 5000);
+                errorMessage.classList.add('hidden');
+            }, 20000);
+        }
+    });
+
+    // Clear field errors when user starts typing
+    document.querySelectorAll('input, textarea, select').forEach(input => {
+        input.addEventListener('input', function() {
+            const errorSpan = this.nextElementSibling;
+            if (errorSpan && errorSpan.classList.contains('error-message')) {
+                errorSpan.classList.add('hidden');
+            }
         });
-
-        // Input focus effects
-        document.querySelectorAll('input, textarea, select').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'translateY(-2px)';
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'translateY(0)';
-            });
+        
+        // Focus effects
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'translateY(-2px)';
         });
-
-        // Intersection Observer for animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animationDelay = Math.random() * 0.3 + 's';
-                    entry.target.classList.add('opacity-100');
-                }
-            });
-        }, observerOptions);
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const animatedElements = document.querySelectorAll('.animate-slide-up, .animate-fade-in');
-            animatedElements.forEach(el => {
-                el.classList.add('opacity-0');
-                observer.observe(el);
-            });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'translateY(0)';
         });
-    </script>
+    });
+
+    // Animation observer for elements
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationDelay = Math.random() * 0.3 + 's';
+                entry.target.classList.add('opacity-100');
+            }
+        });
+    }, observerOptions);
+
+    // Animate elements on load
+    const animatedElements = document.querySelectorAll('.animate-slide-up, .animate-fade-in');
+    animatedElements.forEach(el => {
+        el.classList.add('opacity-0');
+        observer.observe(el);
+    });
+});
+</script>
 </body>
 </html>
