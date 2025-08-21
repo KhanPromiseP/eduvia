@@ -14,9 +14,9 @@
 
         <!-- Desktop Nav -->
         <nav class="hidden lg:flex items-center space-x-8">
-            {{-- <a href="{{ route('blog.index') }}" class="text-black px-5 py-2 rounded-full font-medium hover:text-blue-500">Blogs</a>
-            <a href="{{ route('service.index') }}" class="text-black px-5 py-2 rounded-full font-medium hover:text-blue-500">Services</a>
-            <a href="{{ route('contact.index') }}" class="text-black px-5 py-2 rounded-full font-medium hover:text-blue-500">Contact</a> --}}
+            {{-- <a href="{{ route('blog.index') }}" class="text-black px-5 py-2 rounded-full font-medium hover:text-blue-500">Blogs</a> --}}
+            {{-- <a href="{{ route('service.index') }}" class="text-black px-5 py-2 rounded-full font-medium hover:text-blue-500">Services</a> --}}
+            {{-- <a href="{{ route('contact.index') }}" class="text-black px-5 py-2 rounded-full font-medium hover:text-blue-500">Contact</a> --}}
 
             @if (Route::has('login'))
                 @auth
@@ -60,13 +60,21 @@
             <button @click="open = false" class="absolute top-3 right-3 text-gray-700 font-bold text-xl p-1 hover:text-red-600">
                 ✕
             </button>
-
+            <div class="flex items-center space-x-3">
+            
+            <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <a href="/">
+            <h1 class="text-2xl font-bold text-gray-800">{{ config('app.name', 'Laravel') }}</h1>
+            </a>
+        </div>
             <!-- Menu Content -->
             <div class="pt-6 pb-4 px-6 space-y-4">
 
-                {{-- <x-responsive-nav-link :href="route('blog.index')">Blog</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('contact.index')">Contact</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('service.index')">Services</x-responsive-nav-link> --}}
+                {{-- <x-responsive-nav-link :href="route('blog.index')">Blogs</x-responsive-nav-link> --}}
+                {{-- <x-responsive-nav-link :href="route('contact.index')">Contact</x-responsive-nav-link> --}}
+                {{-- <x-responsive-nav-link :href="route('service.index')">Services</x-responsive-nav-link> --}}
 
                 @auth
                     <div class="border-t border-gray-200 pt-4 space-y-2">
@@ -83,6 +91,7 @@
                     <div class="border-t border-gray-200 pt-4 space-y-2">
                         <x-responsive-nav-link :href="route('login')">Login</x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('register')">Register</x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('blog.index')">Blogs</x-responsive-nav-link>
                     </div>
                 @endauth
             </div>

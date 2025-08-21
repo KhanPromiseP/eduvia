@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <x-ad-display 
                     :ad="$ad" 
                     placement="sidebar-mobile" 
-                    :delay="$index * 1.5 + 1" 
+                    :delay="$index * 1.5 + 3" 
                 />
                 <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
                     ×
@@ -211,11 +211,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     @endif
 
                     <!-- Page Content -->
-                    <main class="flex-1">
+                    <main class="">
                         {{ $slot }}
                     </main>
 
-                    
+                   
 
                     {{-- In-content ads (after main content) --}}
                     @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->count() > 1)
@@ -240,10 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
 </div>
 @endif
-  <!-- Footer -->
-  <div class="" >
-    <x-guest-footer />
-  </div>
+  
 {{-- Floating Ads --}}
 @if(isset($adPlacements['floating']) && $adPlacements['floating']->isNotEmpty())
 @foreach($adPlacements['floating'] as $index => $ad)
@@ -262,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="absolute top-2 right-2 text-white bg-red-600 px-2 py-1 rounded z-50 close-popup">
             ✕
         </button>
-        <x-ad-display :ad="$ad" placement="popup" :delay="$index * 3 + 10" />
+        <x-ad-display :ad="$ad" placement="popup" :delay="$index * 3 + 5" />
     </div>
 </div>
 <script>
@@ -582,6 +579,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         </script>
+
+         <!-- Footer -->
+                    <div class="" >
+                        <x-guest-footer />
+                    </div>
 
 </body>
 </html>

@@ -26,6 +26,7 @@ return new class extends Migration
         
         $table->unique(['ad_id', 'session_id']);
         $table->index(['ad_id', 'last_tracked_at']);
+        $table->index('session_id');
     });
 
     }

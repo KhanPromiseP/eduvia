@@ -182,64 +182,84 @@ public function index(Request $request)
     /**
      * Display the specified ad with analytics.
      */
-   public function show(Ad $ad)
+ public function show(Ad $ad)
 {
     // Basic counts
     $ad->loadCount(['views', 'clicks', 'timeSpent']);
-    
-    // Date range for analytics (last 30 days)
-    $startDate = now()->subDays(30);
-    $endDate = now();
-    
-    // Time-based analytics
-    $dailyStats = $this->getDailyStats($ad, $startDate, $endDate);
-    $hourlyStats = $this->getHourlyStats($ad, $startDate, $endDate);
-    $weekdayStats = $this->getWeekdayStats($ad, $startDate, $endDate);
-    
-    // Device stats
-    $deviceStats = $this->getDeviceStats($ad, $startDate, $endDate);
-    
-    // Geographic stats
-    $geoStats = $this->getGeoStats($ad, $startDate, $endDate);
-    
-    // Referrer stats
-    $topReferrers = $this->getTopReferrers($ad, $startDate, $endDate);
-    
-    // Time spent analytics
-    $timeSpentStats = $this->getTimeSpentStats($ad);
-    
-    // Performance metrics
-    $ctr = $this->calculateCTR($ad, $startDate, $endDate);
-    $engagementRate = $this->calculateEngagementRate($ad, $startDate, $endDate);
-    
-    // First/last events
-    $firstImpression = $ad->views()->orderBy('viewed_at')->first();
-    $lastImpression = $ad->views()->orderByDesc('viewed_at')->first();
-    $firstClick = $ad->clicks()->orderBy('clicked_at')->first();
-    $lastClick = $ad->clicks()->orderByDesc('clicked_at')->first();
-    
-    $analytics = [
-        'total_views' => $ad->views_count,
-        'total_clicks' => $ad->clicks_count,
-        'ctr' => $ctr,
-        'engagement_rate' => $engagementRate,
-        'total_time_spent' => $timeSpentStats['total'],
-        'avg_time_spent' => $timeSpentStats['average'],
-        'daily_stats' => $dailyStats,
-        'hourly_stats' => $hourlyStats,
-        'weekday_stats' => $weekdayStats,
-        'device_stats' => $deviceStats,
-        'geo_stats' => $geoStats,
-        'top_referrers' => $topReferrers,
-        'first_impression' => $firstImpression?->viewed_at,
-        'last_impression' => $lastImpression?->viewed_at,
-        'first_click' => $firstClick?->clicked_at,
-        'last_click' => $lastClick?->clicked_at,
-        'cost_per_click' => $this->calculateCostPerClick($ad),
+
+    // Periods to calculate stats
+    $periods = [
+        'daily' => now()->subDay(),
+        'weekly' => now()->subDays(7),
+        'monthly' => now()->subDays(30),
     ];
+
+    $analytics = [];
+
+    foreach ($periods as $key => $startDate) {
+        $endDate = now();
+
+        // Current period totals
+        $currentViews = $ad->views()->whereBetween('viewed_at', [$startDate, $endDate])->count();
+        $currentClicks = $ad->clicks()->whereBetween('clicked_at', [$startDate, $endDate])->count();
+
+        // Previous period totals for trend calculation
+        $previousStart = $startDate->copy()->sub($endDate->diff($startDate));
+        $previousEnd = $startDate;
+
+        $previousViews = $ad->views()->whereBetween('viewed_at', [$previousStart, $previousEnd])->count();
+        $previousClicks = $ad->clicks()->whereBetween('clicked_at', [$previousStart, $previousEnd])->count();
+
+        // Calculate trends
+        $viewsChange = $previousViews > 0 ? round((($currentViews - $previousViews) / $previousViews) * 100, 2) : 0;
+        $clicksChange = $previousClicks > 0 ? round((($currentClicks - $previousClicks) / $previousClicks) * 100, 2) : 0;
+
+        $analytics[$key] = [
+            'total_views' => $currentViews,
+            'total_clicks' => $currentClicks,
+            'views_change' => $viewsChange,
+            'clicks_change' => $clicksChange,
+            'ctr' => $this->calculateCTR($ad, $startDate, $endDate),
+            'engagement_rate' => $this->calculateEngagementRate($ad, $startDate, $endDate),
+            'time_spent' => $this->getTimeSpentStatsByPeriod($ad, $startDate, $endDate),
+        ];
+    }
+
+    // Existing detailed stats for graphs
+    $analytics['daily_stats'] = $this->getDailyStats($ad, now()->subDays(30), now());
+    $analytics['hourly_stats'] = $this->getHourlyStats($ad, now()->subDays(30), now());
+    $analytics['weekday_stats'] = $this->getWeekdayStats($ad, now()->subDays(30), now());
+    $analytics['device_stats'] = $this->getDeviceStats($ad, now()->subDays(30), now());
+    $analytics['geo_stats'] = $this->getGeoStats($ad, now()->subDays(30), now());
+    $analytics['top_referrers'] = $this->getTopReferrers($ad, now()->subDays(30), now());
+
+    // First/last events
+    $analytics['first_impression'] = $ad->views()->orderBy('viewed_at')->first()?->viewed_at;
+    $analytics['last_impression'] = $ad->views()->orderByDesc('viewed_at')->first()?->viewed_at;
+    $analytics['first_click'] = $ad->clicks()->orderBy('clicked_at')->first()?->clicked_at;
+    $analytics['last_click'] = $ad->clicks()->orderByDesc('clicked_at')->first()?->clicked_at;
+
+    $analytics['cost_per_click'] = $this->calculateCostPerClick($ad);
 
     return view('admin.ads.show', compact('ad', 'analytics'));
 }
+
+
+
+protected function getTimeSpentStatsByPeriod(Ad $ad, $startDate, $endDate)
+{
+    $total = $ad->timeSpent()->whereBetween('last_tracked_at', [$startDate, $endDate])->sum('time_spent');
+    $views = $ad->views()->whereBetween('viewed_at', [$startDate, $endDate])->count();
+    $average = $views > 0 ? $total / $views : 0;
+
+    return [
+        'total' => round($total, 2),
+        'average' => round($average, 2),
+    ];
+}
+
+
+
 
 // Helper methods for analytics:
 
@@ -286,21 +306,49 @@ protected function getWeekdayStats(Ad $ad, $startDate, $endDate)
         });
 }
 
-protected function getDeviceStats(Ad $ad, $startDate, $endDate)
+private function getDeviceStats($ad, $startDate, $endDate)
 {
-    return $ad->views()
-        ->selectRaw('
-            CASE 
-                WHEN viewport_width <= 768 THEN "Mobile"
-                WHEN viewport_width <= 1024 THEN "Tablet"
-                ELSE "Desktop"
-            END as device_type,
-            COUNT(*) as count
-        ')
+    // Get views grouped by device type
+    $views = AdView::selectRaw("
+            CASE
+                WHEN viewport_width <= 768 THEN 'Mobile'
+                WHEN viewport_width <= 1024 THEN 'Tablet'
+                ELSE 'Desktop'
+            END as device_type
+        ")
+        ->where('ad_id', $ad->id)
         ->whereBetween('viewed_at', [$startDate, $endDate])
-        ->groupBy('device_type')
         ->get();
+
+    // Group by device type
+    $deviceStats = $views->groupBy('device_type')->map(function($group, $deviceType) use ($ad, $startDate, $endDate) {
+        $viewsCount = $group->count();
+
+        // Count clicks for this device by matching ad_id and session_id
+        $sessionIds = $group->pluck('session_id')->toArray();
+        $clicksCount = \App\Models\AdClick::where('ad_id', $ad->id)
+                        ->whereIn('session_id', $sessionIds)
+                        ->whereBetween('clicked_at', [$startDate, $endDate])
+                        ->count();
+
+        return [
+            'views' => $viewsCount,
+            'clicks' => $clicksCount,
+            'ctr' => $viewsCount > 0 ? round(($clicksCount / $viewsCount) * 100, 2) : 0,
+        ];
+    });
+
+    // Determine best device by CTR then clicks
+    $bestDevice = $deviceStats->sortByDesc(function($d) {
+        return $d['ctr'] * 1000 + $d['clicks']; // scoring
+    })->keys()->first();
+
+    return [
+        'stats' => $deviceStats,
+        'best_device' => $bestDevice,
+    ];
 }
+
 
 protected function getGeoStats(Ad $ad, $startDate, $endDate)
 {
@@ -320,7 +368,7 @@ protected function getTimeSpentStats(Ad $ad)
     $average = $ad->views_count > 0 ? $total / $ad->views_count : 0;
     
     return [
-        'total' => $total,
+        'total' => round($total, 2), // Round to 2 decimal places
         'average' => round($average, 2),
     ];
 }
@@ -383,6 +431,13 @@ protected function calculateCostPerClick(Ad $ad)
 
         return view('admin.ads.edit', compact('ad', 'products', 'users', 'adTypes', 'placements'));
     }
+
+
+
+
+
+
+    
 
     /**
      * Update the specified ad in storage.
@@ -478,6 +533,14 @@ protected function calculateCostPerClick(Ad $ad)
 public function trackView(Request $request): JsonResponse
 {
     try {
+        // Log the incoming request for debugging
+        Log::debug('TrackView Request:', [
+            'all_data' => $request->all(),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'referer' => $request->header('referer')
+        ]);
+
         $validated = $request->validate([
             'ad_id' => 'required|exists:ads,id',
             'timestamp' => 'required|integer',
@@ -487,6 +550,9 @@ public function trackView(Request $request): JsonResponse
             'viewport.height' => 'required|integer',
             'session_id' => 'required|string',
         ]);
+
+        // Log validated data
+        Log::debug('TrackView Validated:', $validated);
 
         // Get geo data from IP
         $geoData = $this->getGeoData($request->ip());
@@ -505,10 +571,15 @@ public function trackView(Request $request): JsonResponse
             'city' => $geoData['city'] ?? null,
         ]);
 
+        Log::debug('TrackView Success: Record created');
         return response()->json(['success' => true]);
     } catch (\Exception $e) {
-        Log::error('Ad view tracking failed', ['error' => $e->getMessage()]);
-        return response()->json(['success' => false], 500);
+        Log::error('Ad view tracking failed', [
+            'error' => $e->getMessage(),
+            'request' => $request->all(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
 }
 
@@ -558,63 +629,81 @@ public function trackClick(Request $request): JsonResponse
     }
 }
 
-// public function trackTimeSpent(Request $request): JsonResponse
-// {
-//     DB::beginTransaction();
+public function trackTimeSpent(Request $request): JsonResponse
+{
+    DB::beginTransaction();
     
-//     try {
-//         // Validate with strict rules
-//         $validated = $request->validate([
-//             'ad_id' => 'required|integer|exists:ads,id',
-//             'session_id' => 'required|string|max:255',
-//             'time_spent' => 'required|numeric|min:0|max:999999.99',
-//             'last_tracked_at' => 'required|integer|min:0',
-//             'placement' => 'sometimes|string|max:50'
-//         ]);
+    try {
+        Log::debug('TimeSpent Request Data:', $request->all());
 
-//         // Convert and format all data before saving
-//         $timeSpent = (float)number_format($validated['time_spent'], 2, '.', '');
-//         $timestamp = $validated['last_tracked_at'];
-//         $lastTrackedAt = (strlen($timestamp) === 13) 
-//             ? Carbon::createFromTimestampMs($timestamp)
-//             : Carbon::createFromTimestamp($timestamp);
+        $validated = $request->validate([
+            'ad_id' => 'required|integer|exists:ads,id',
+            'session_id' => 'required|string|max:255',
+            'time_spent' => 'required|numeric|min:0|max:999999.99',
+            'last_tracked_at' => 'required|integer|min:0',
+            'placement' => 'sometimes|string|max:50'
+        ]);
 
-//         // Use updateOrCreate but with pre-formatted values
-//         $record = AdTimeSpent::updateOrCreate(
-//             [
-//                 'ad_id' => $validated['ad_id'],
-//                 'session_id' => $validated['session_id']
-//             ],
-//             [
-//                 'ip_address' => $request->ip(),
-//                 'user_agent' => substr($request->userAgent() ?? '', 0, 512),
-//                 'time_spent' => $timeSpent,
-//                 'last_tracked_at' => $lastTrackedAt,
-//                 'placement' => $validated['placement'] ?? null
-//             ]
-//         );
+        Log::debug('Validated Data:', $validated);
 
-//         DB::commit();
-
-//         return response()->json(['success' => true]);
-
-//     } catch (\Exception $e) {
-//         DB::rollBack();
+        // Convert and format all data before saving
+        $timeSpent = (float)number_format($validated['time_spent'], 2, '.', '');
+        $timestamp = $validated['last_tracked_at'];
         
-//         Log::error('Time spent tracking failed', [
-//             'error' => $e->getMessage(),
-//             'trace' => $e->getTraceAsString(),
-//             'request' => $request->all()
-//         ]);
-        
-//         return response()->json([
-//             'success' => false,
-//             'message' => 'Tracking failed',
-//             'error' => $e->getMessage()
-//         ], 500);
-//     }
-// }
+        Log::debug('Timestamp processing:', [
+            'timestamp' => $timestamp,
+            'timestamp_length' => strlen((string)$timestamp),
+            'timestamp_type' => gettype($timestamp)
+        ]);
 
+        $lastTrackedAt = (strlen((string)$timestamp) === 13) 
+            ? Carbon::createFromTimestampMs($timestamp)
+            : Carbon::createFromTimestamp($timestamp);
+
+        Log::debug('Carbon conversion:', [
+            'last_tracked_at' => $lastTrackedAt,
+            'last_tracked_at_format' => $lastTrackedAt->format('Y-m-d H:i:s')
+        ]);
+
+        // Use updateOrCreate but with pre-formatted values
+        $record = AdTimeSpent::updateOrCreate(
+            [
+                'ad_id' => $validated['ad_id'],
+                'session_id' => $validated['session_id']
+            ],
+            [
+                'ip_address' => $request->ip(),
+                'user_agent' => substr($request->userAgent() ?? '', 0, 512),
+                'time_spent' => $timeSpent,
+                'last_tracked_at' => $lastTrackedAt,
+                'placement' => $validated['placement'] ?? null
+            ]
+        );
+
+        Log::debug('Database operation successful:', ['record_id' => $record->id]);
+
+        DB::commit();
+
+        return response()->json(['success' => true]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        Log::error('Time spent tracking failed', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'request_data' => $request->all(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Tracking failed',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 
 protected function getGeoData($ip): array
 {
@@ -945,4 +1034,387 @@ protected function getGeoData($ip): array
             Cache::flush(); // Or use more specific cache keys
         }
     }
+
+
+
+
+
+
+
+
+    /**
+ * Display comprehensive analytics for all ads.
+ */
+public function generalAnalytics(Request $request)
+{
+    // Get date range from request or default to last 30 days
+    $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
+    $endDate = $request->input('end_date', now()->format('Y-m-d'));
+    
+    // Convert to Carbon instances for easier manipulation
+    $start = Carbon::parse($startDate)->startOfDay();
+    $end = Carbon::parse($endDate)->endOfDay();
+    
+    // Get all ads with their basic counts
+    $ads = Ad::withCount(['views', 'clicks', 'timeSpent'])->get();
+    
+    // Calculate overall statistics
+    $analytics = [
+        'overview' => $this->getOverviewStats($start, $end),
+        'performance_trends' => $this->getPerformanceTrends($start, $end),
+        'time_intervals' => $this->getTimeIntervalStats($start, $end),
+        'device_breakdown' => $this->getDeviceBreakdowns($start, $end),
+        'geo_distribution' => $this->getGeoDistribution($start, $end),
+        'top_performers' => $this->getTopPerformers($start, $end),
+        'placement_analysis' => $this->getPlacementAnalysis($start, $end),
+        'referrer_analysis' => $this->getReferrerAnalysis($start, $end),
+    ];
+    
+    // Get date range options for the filter
+    $dateRanges = [
+        'today' => 'Today',
+        'yesterday' => 'Yesterday',
+        'last_7_days' => 'Last 7 Days',
+        'last_30_days' => 'Last 30 Days',
+        'this_month' => 'This Month',
+        'last_month' => 'Last Month',
+        'custom' => 'Custom Range'
+    ];
+    
+    return view('admin.dashboard', compact('analytics', 'startDate', 'endDate', 'dateRanges'));
 }
+
+/**
+ * Get overview statistics for all ads.
+ */
+protected function getOverviewStats($startDate, $endDate)
+{
+    $totalViews = AdView::whereBetween('viewed_at', [$startDate, $endDate])->count();
+    $totalClicks = AdClick::whereBetween('clicked_at', [$startDate, $endDate])->count();
+    $totalTimeSpent = AdTimeSpent::whereBetween('last_tracked_at', [$startDate, $endDate])->sum('time_spent');
+    
+    // Calculate CTR
+    $ctr = $totalViews > 0 ? round(($totalClicks / $totalViews) * 100, 2) : 0;
+    
+    // Calculate average time spent per view
+    $avgTimeSpent = $totalViews > 0 ? round($totalTimeSpent / $totalViews, 2) : 0;
+    
+    // Get previous period for comparison
+    $daysDiff = $startDate->diffInDays($endDate);
+    $prevStartDate = $startDate->copy()->subDays($daysDiff);
+    $prevEndDate = $startDate->copy()->subSecond();
+    
+    $prevViews = AdView::whereBetween('viewed_at', [$prevStartDate, $prevEndDate])->count();
+    $prevClicks = AdClick::whereBetween('clicked_at', [$prevStartDate, $prevEndDate])->count();
+    
+    // Calculate percentage changes
+    $viewsChange = $prevViews > 0 ? round((($totalViews - $prevViews) / $prevViews) * 100, 2) : 0;
+    $clicksChange = $prevClicks > 0 ? round((($totalClicks - $prevClicks) / $prevClicks) * 100, 2) : 0;
+    
+    return [
+        'total_ads' => Ad::count(),
+        'active_ads' => Ad::active()->count(),
+        'total_views' => $totalViews,
+        'total_clicks' => $totalClicks,
+        'total_time_spent' => round($totalTimeSpent, 2),
+        'ctr' => $ctr,
+        'avg_time_spent' => $avgTimeSpent,
+        'views_change' => $viewsChange,
+        'clicks_change' => $clicksChange,
+    ];
+}
+
+/**
+ * Get performance trends over time.
+ */
+protected function getPerformanceTrends($startDate, $endDate)
+{
+    $days = $startDate->diffInDays($endDate);
+    
+    // Initialize arrays for each metric
+    $viewsData = [];
+    $clicksData = [];
+    $ctrData = [];
+    $timeSpentData = [];
+    
+    // Generate data for each day
+    $currentDate = $startDate->copy();
+    while ($currentDate <= $endDate) {
+        $nextDate = $currentDate->copy()->addDay();
+        
+        $dayViews = AdView::whereBetween('viewed_at', [$currentDate, $nextDate])->count();
+        $dayClicks = AdClick::whereBetween('clicked_at', [$currentDate, $nextDate])->count();
+        $dayTimeSpent = AdTimeSpent::whereBetween('last_tracked_at', [$currentDate, $nextDate])->sum('time_spent');
+        $dayCtr = $dayViews > 0 ? round(($dayClicks / $dayViews) * 100, 2) : 0;
+        $dayAvgTimeSpent = $dayViews > 0 ? round($dayTimeSpent / $dayViews, 2) : 0;
+        
+        $dateKey = $currentDate->format('Y-m-d');
+        $viewsData[$dateKey] = $dayViews;
+        $clicksData[$dateKey] = $dayClicks;
+        $ctrData[$dateKey] = $dayCtr;
+        $timeSpentData[$dateKey] = $dayAvgTimeSpent;
+        
+        $currentDate->addDay();
+    }
+    
+    return [
+        'views' => $viewsData,
+        'clicks' => $clicksData,
+        'ctr' => $ctrData,
+        'avg_time_spent' => $timeSpentData,
+    ];
+}
+
+/**
+ * Get statistics by time intervals (hour of day, day of week).
+ */
+protected function getTimeIntervalStats($startDate, $endDate)
+{
+    // Hourly statistics
+    $hourlyStats = AdView::selectRaw('HOUR(viewed_at) as hour, COUNT(*) as views')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('hour')
+        ->orderBy('hour')
+        ->get();
+    
+    // Initialize array for all hours
+    $hourlyData = array_fill(0, 24, 0);
+    foreach ($hourlyStats as $stat) {
+        $hourlyData[$stat->hour] = $stat->views;
+    }
+    
+    // Weekday statistics
+    $weekdayStats = AdView::selectRaw('DAYOFWEEK(viewed_at) as weekday, COUNT(*) as views')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('weekday')
+        ->orderBy('weekday')
+        ->get();
+    
+    // Initialize array for all weekdays
+    $weekdayData = array_fill(1, 7, 0);
+    foreach ($weekdayStats as $stat) {
+        $weekdayData[$stat->weekday] = $stat->views;
+    }
+    
+    return [
+        'hourly' => $hourlyData,
+        'weekdays' => $weekdayData,
+    ];
+}
+
+/**
+ * Get device breakdown statistics.
+ */
+protected function getDeviceBreakdowns($startDate, $endDate)
+{
+    $deviceStats = AdView::selectRaw("
+            CASE
+                WHEN viewport_width <= 768 THEN 'Mobile'
+                WHEN viewport_width <= 1024 THEN 'Tablet'
+                ELSE 'Desktop'
+            END as device_type,
+            COUNT(*) as views
+        ")
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('device_type')
+        ->get();
+    
+    $totalViews = $deviceStats->sum('views');
+    
+    // Calculate clicks for each device type
+    $deviceClicks = [];
+    foreach ($deviceStats as $device) {
+        $sessionIds = AdView::whereBetween('viewed_at', [$startDate, $endDate])
+            ->whereRaw("
+                CASE
+                    WHEN viewport_width <= 768 THEN 'Mobile'
+                    WHEN viewport_width <= 1024 THEN 'Tablet'
+                    ELSE 'Desktop'
+                END = ?
+            ", [$device->device_type])
+            ->pluck('session_id')
+            ->toArray();
+        
+        $clicks = AdClick::whereIn('session_id', $sessionIds)
+            ->whereBetween('clicked_at', [$startDate, $endDate])
+            ->count();
+            
+        $deviceClicks[$device->device_type] = $clicks;
+    }
+    
+    // Calculate percentages and CTR
+    $breakdown = [];
+    foreach ($deviceStats as $device) {
+        $views = $device->views;
+        $clicks = $deviceClicks[$device->device_type] ?? 0;
+        $percentage = $totalViews > 0 ? round(($views / $totalViews) * 100, 2) : 0;
+        $ctr = $views > 0 ? round(($clicks / $views) * 100, 2) : 0;
+        
+        $breakdown[$device->device_type] = [
+            'views' => $views,
+            'clicks' => $clicks,
+            'percentage' => $percentage,
+            'ctr' => $ctr,
+        ];
+    }
+    
+    return $breakdown;
+}
+
+/**
+ * Get geographical distribution.
+ */
+protected function getGeoDistribution($startDate, $endDate)
+{
+    $countryStats = AdView::selectRaw('country, COUNT(*) as views')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->whereNotNull('country')
+        ->groupBy('country')
+        ->orderByDesc('views')
+        ->limit(10)
+        ->get();
+    
+    $cityStats = AdView::selectRaw('city, country, COUNT(*) as views')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->whereNotNull('city')
+        ->groupBy('city', 'country')
+        ->orderByDesc('views')
+        ->limit(10)
+        ->get();
+    
+    return [
+        'countries' => $countryStats,
+        'cities' => $cityStats,
+    ];
+}
+
+/**
+ * Get top performing ads.
+ */
+protected function getTopPerformers($startDate, $endDate)
+{
+    $topByViews = Ad::withCount(['views', 'clicks'])
+        ->whereHas('views', function($query) use ($startDate, $endDate) {
+            $query->whereBetween('viewed_at', [$startDate, $endDate]);
+        })
+        ->orderByDesc('views_count')
+        ->limit(5)
+        ->get();
+    
+    $topByClicks = Ad::withCount(['views', 'clicks'])
+        ->whereHas('clicks', function($query) use ($startDate, $endDate) {
+            $query->whereBetween('clicked_at', [$startDate, $endDate]);
+        })
+        ->orderByDesc('clicks_count')
+        ->limit(5)
+        ->get();
+    
+    $topByCTR = Ad::withCount(['views', 'clicks'])
+        ->whereHas('views', function($query) use ($startDate, $endDate) {
+            $query->whereBetween('viewed_at', [$startDate, $endDate]);
+        })
+        ->having('views_count', '>', 10) // Minimum views threshold
+        ->get()
+        ->map(function($ad) {
+            $ad->ctr = $ad->views_count > 0 ? round(($ad->clicks_count / $ad->views_count) * 100, 2) : 0;
+            return $ad;
+        })
+        ->sortByDesc('ctr')
+        ->take(5);
+    
+    return [
+        'by_views' => $topByViews,
+        'by_clicks' => $topByClicks,
+        'by_ctr' => $topByCTR,
+    ];
+}
+
+/**
+ * Get placement analysis.
+ */
+protected function getPlacementAnalysis($startDate, $endDate)
+{
+    $placementStats = DB::table('ads')
+        ->join('ad_views', 'ads.id', '=', 'ad_views.ad_id')
+        ->leftJoin('ad_clicks', function($join) use ($startDate, $endDate) {
+            $join->on('ads.id', '=', 'ad_clicks.ad_id')
+                 ->whereBetween('ad_clicks.clicked_at', [$startDate, $endDate]);
+        })
+        ->selectRaw('
+            ads.placement,
+            COUNT(DISTINCT ad_views.id) as views,
+            COUNT(DISTINCT ad_clicks.id) as clicks,
+            CASE 
+                WHEN COUNT(DISTINCT ad_views.id) > 0 
+                THEN ROUND((COUNT(DISTINCT ad_clicks.id) / COUNT(DISTINCT ad_views.id)) * 100, 2)
+                ELSE 0 
+            END as ctr
+        ')
+        ->whereBetween('ad_views.viewed_at', [$startDate, $endDate])
+        ->groupBy('ads.placement')
+        ->orderByDesc('views')
+        ->get();
+    
+    return $placementStats;
+}
+
+/**
+ * Get referrer analysis.
+ */
+protected function getReferrerAnalysis($startDate, $endDate)
+{
+    $referrerStats = AdView::selectRaw('
+            COALESCE(referrer, \'Direct\') as referrer,
+            COUNT(*) as views,
+            COUNT(DISTINCT session_id) as unique_sessions
+        ')
+        ->whereBetween('viewed_at', [$startDate, $endDate])
+        ->groupBy('referrer')
+        ->orderByDesc('views')
+        ->limit(10)
+        ->get();
+    
+    // Get clicks for each referrer
+    foreach ($referrerStats as $stat) {
+        $clicks = AdClick::whereBetween('clicked_at', [$startDate, $endDate])
+            ->where('referrer', $stat->referrer === 'Direct' ? null : $stat->referrer)
+            ->count();
+            
+        $stat->clicks = $clicks;
+        $stat->ctr = $stat->views > 0 ? round(($clicks / $stat->views) * 100, 2) : 0;
+    }
+    
+    return $referrerStats;
+}
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -68,19 +68,9 @@
             @break
         
         @case('popup')
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full relative overflow-hidden">
-                <button x-show="showCloseBtn" @click="closeAd" 
-                        class="absolute top-2 right-2 bg-gray-800 text-white w-6 h-6 rounded-full flex items-center justify-center z-50">
-                    &times;
-                </button>
-                @if($link)
-                    <a href="{{ $link }}" target="_blank" class="block w-full h-full" @click="trackAdClick">
-                        {!! $content !!}
-                    </a>
-                @else
-                    {!! $content !!}
-                @endif
-            </div>
+              
+                @include('components.ads.popup-ad', ['ad' => $ad, 'adId' => $adId])
+        
             @break
         
         @case('persistent')

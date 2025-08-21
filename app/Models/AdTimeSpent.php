@@ -22,10 +22,7 @@ class AdTimeSpent extends Model
     ];
 
     protected $casts = [
-        'time_spent' => 'float',
-        'last_tracked_at' => 'datetime:Y-m-d H:i:s',
+        'last_tracked_at' => 'datetime',
     ];
-
-    protected $dateFormat = 'Y-m-d H:i:s';
 
 }

@@ -41,7 +41,7 @@
                 </x-dropdown-link>
 
                 @if(Auth::user()->is_admin)
-                    <x-dropdown-link :href="route('admin.admin.dashboard')">
+                    <x-dropdown-link :href="route('admin.dashboard')">
                         <i class="bi bi-speedometer2 mr-2"></i> {{ __('Admin Dashboard') }}
                     </x-dropdown-link>
                 @endif

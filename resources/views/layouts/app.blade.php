@@ -20,6 +20,8 @@
             rel="stylesheet"
         />
 
+        <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+
         {{-- alpinejs --}}
         <script
             src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
@@ -139,9 +141,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         placement="sidebar-left" 
                         :delay="$index * 1.5 + 4" 
                     />
-                    {{-- <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
+                    <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
                         ×
-                    </button> --}}
+                    </button>
                 </div>
             @endforeach
         </div>
@@ -157,9 +159,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         placement="sidebar-right" 
                         :delay="$index * 1.5 + 3" 
                     />
-                    {{-- <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
+                    <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
                         ×
-                    </button> --}}
+                    </button>
                 </div>
             @endforeach
         </div>
@@ -175,9 +177,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         placement="sidebar-mobile" 
                         :delay="$index * 1.5 + 3" 
                     />
-                    {{-- <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
+                    <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
                         ×
-                    </button> --}}
+                    </button>
                 </div>
             @endforeach
         </div>
@@ -327,9 +329,25 @@ window.AdManager = {
         this.setupBeforeUnloadHandler();
     },
 
+
+       setupAdContainers: function() {
+        // Add data attributes to all ad containers for tracking
+        document.querySelectorAll('.ad-container').forEach(container => {
+            const adId = container.getAttribute('data-ad-id');
+            const placement = container.getAttribute('data-placement');
+            
+            if (adId && placement) {
+                container.setAttribute('data-ad-id', adId);
+                container.setAttribute('data-placement', placement);
+            }
+        });
+        
+        console.log('Ad containers setup complete');
+    },
+
     // Track page visit for analytics
-    trackPageVisit: function() {
-        fetch('/ads/track/page-visit', {
+   trackPageVisit: function() {
+        fetch('/ads/track/page-visit', { // ✅ Correct endpoint
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -339,16 +357,10 @@ window.AdManager = {
                 url: window.location.href,
                 referrer: document.referrer,
                 timestamp: Date.now(),
-                screen_size: {
-                    width: window.screen.width,
-                    height: window.screen.height
-                },
-                viewport_size: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                }
+                screen_size: { width: window.screen.width, height: window.screen.height },
+                viewport_size: { width: window.innerWidth, height: window.innerHeight }
             })
-        });
+        }).catch(error => console.error('Page visit tracking error:', error));
     },
 
     // Setup intersection observer for ad visibility tracking
@@ -360,35 +372,27 @@ window.AdManager = {
                     const placement = entry.target.getAttribute('data-placement');
                     
                     if (entry.isIntersecting) {
-                        // Track ad view (once per session)
                         if (adId && !entry.target.hasAttribute('data-view-tracked')) {
                             this.trackAdView(adId, placement);
                             entry.target.setAttribute('data-view-tracked', 'true');
                         }
                         
-                        // Start time tracking
                         if (adId) {
                             this.startAdTimeTracking(adId);
                         }
                     } else {
-                        // Ad went out of view, update time tracking
                         if (adId && this.adViewTimes.has(adId)) {
                             this.updateAdTimeTracking(adId);
                         }
                     }
                 });
-            }, { 
-                threshold: 0.5, // Track when at least 50% of ad is visible
-                rootMargin: '0px 0px -100px 0px' // Add some buffer at bottom
-            });
+            }, { threshold: 0.5, rootMargin: '0px 0px -100px 0px' });
 
-            // Observe all ad containers
             document.querySelectorAll('.ad-container[data-ad-id]').forEach(ad => {
                 this.adObserver.observe(ad);
             });
         }
     },
-
     // Setup click handlers for all ad links
     setupClickHandlers: function() {
         document.addEventListener('click', (e) => {
@@ -408,8 +412,9 @@ window.AdManager = {
     },
 
     // Track ad view
+
     trackAdView: function(adId, placement) {
-        fetch('/ads/track/view', {
+        fetch('/ads/track/view', { // ✅ Correct endpoint
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -421,27 +426,21 @@ window.AdManager = {
                 timestamp: Date.now(),
                 url: window.location.href,
                 referrer: document.referrer,
-                viewport: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                },
+                viewport: { width: window.innerWidth, height: window.innerHeight },
                 session_id: this.getSessionId()
             })
-        });
+        }).catch(error => console.error('View tracking error:', error));
     },
 
     // Track ad click
-  trackAdClick: function(event) {
-    event.preventDefault();
-    
-    const targetUrl = this.$el.href || this.link || window.location.href;
+   trackAdClick: function(adId, targetUrl, placement = null) {
     const payload = {
-        ad_id: this.adId,
+        ad_id: adId,
         timestamp: Date.now(),
         url: window.location.href,
-        target_url: targetUrl, // Always send a value
+        target_url: targetUrl,
         session_id: this.getSessionId(),
-        placement: this.placement
+        placement: placement
     };
 
     fetch('/ads/track/click', {
@@ -452,56 +451,43 @@ window.AdManager = {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => {
-        if (!response.ok) throw new Error('Click tracking failed');
-        window.location.href = targetUrl;
+    .then(() => {
+        // Handle redirect after successful tracking
+        if (targetUrl) {
+            if (targetUrl.startsWith('http') && !targetUrl.includes(window.location.hostname)) {
+                window.open(targetUrl, '_blank');
+            } else {
+                window.location.href = targetUrl;
+            }
+        }
     })
     .catch(error => {
         console.error('Click tracking error:', error);
-        window.location.href = targetUrl; // Fallback redirect
+        // Fallback redirect
+        if (targetUrl) window.location.href = targetUrl;
     });
 }
 
-    // Track time spent on ad
-    // trackTimeSpent: function(adId, timeSpent) {
-    //     // Prepare payload with proper types
-    //     const payload = {
-    //         ad_id: parseInt(adId),
-    //         time_spent: parseFloat(timeSpent.toFixed(2)), // Ensure 2 decimal places
-    //         last_tracked_at: Math.floor(Date.now() / 1000), // Send in seconds
-    //         session_id: this.getSessionId(),
-    //         placement: this.placement || null
-    //     };
+     trackTimeSpent: function(adId, timeSpent, placement = null) {
+        const payload = {
+            ad_id: parseInt(adId),
+            time_spent: parseFloat(timeSpent.toFixed(2)),
+            last_tracked_at: Date.now(),
+            session_id: this.getSessionId(),
+            placement: placement
+        };
 
-    //     // Debug logging
-    //     console.log('Time spent tracking payload:', payload);
+        fetch('/ads/track/time-spent', { // ✅ Correct endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+        }).catch(error => console.error('Time tracking error:', error));
+    },
 
-    //     fetch('/ads/track/time-spent', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-    //             'Accept': 'application/json',
-    //             'X-Requested-With': 'XMLHttpRequest'
-    //         },
-    //         body: JSON.stringify(payload)
-    //     })
-    //     .then(response => {
-    //         if (!response.ok) {
-    //             return response.json().then(err => { throw err; });
-    //         }
-    //         return response.json();
-    //     })
-    //     .then(data => {
-    //         console.debug('Time tracked successfully:', data);
-    //     })
-    //     .catch(error => {
-    //         console.error('Error tracking time:', error);
-    //         if (error.message) {
-    //             alert('Tracking error: ' + error.message);
-    //         }
-    //     });
-    // },
 
     // Time tracking functions
     adViewTimes: new Map(),
@@ -589,6 +575,7 @@ window.AdManager = {
         });
     }
 };
+
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {

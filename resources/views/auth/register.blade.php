@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4">
+    <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
         <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 sm:p-10">
 
             <!-- Logo / Title -->

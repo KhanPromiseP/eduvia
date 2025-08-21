@@ -27,12 +27,70 @@
         .sidebar-link { transition: all 0.2s ease; }
         .sidebar-link:hover { transform: translateX(4px); }
         .sidebar-link.active { box-shadow: inset 4px 0 0 0 rgba(255,255,255,0.8); }
+        
+        /* Fixed layout styles */
+        body {
+            overflow-x: hidden;
+        }
+        
+        /* Fixed sidebar */
+        .sidebar-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 40;
+            width: 16rem; /* 64px equivalent to w-64 */
+        }
+        
+        /* Fixed navbar */
+        .navbar-fixed {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 16rem; /* Match sidebar width */
+            z-index: 30;
+            height: 4rem; /* Approx h-16 */
+        }
+        
+        /* Main content area */
+        .main-content {
+            margin-left: 16rem; /* Match sidebar width */
+            margin-top: 4rem; /* Match navbar height */
+            width: calc(100% - 16rem);
+            min-height: calc(100vh - 4rem);
+            overflow-y: auto;
+        }
+        
+        /* Mobile adjustments */
+        @media (max-width: 1023px) {
+            .sidebar-fixed {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar-fixed.open {
+                transform: translateX(0);
+            }
+            
+            .navbar-fixed {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+        
+        /* Smooth transitions */
+        .transition-all {
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-50">
     
-    <div class="flex min-h-screen" 
-         x-data="{ sidebarOpen: window.innerWidth >= 1024 }" 
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" 
          @resize.window="sidebarOpen = window.innerWidth >= 1024">
 
         <!-- Floating Toggle Button (Mobile Only) -->
@@ -42,15 +100,8 @@
         </button>
 
         <!-- Sidebar -->
-        <aside x-show="sidebarOpen"
-               x-transition:enter="sidebar-transition"
-               x-transition:enter-start="-translate-x-full"
-               x-transition:enter-end="translate-x-0"
-               x-transition:leave="sidebar-transition"
-               x-transition:leave-start="translate-x-0"
-               x-transition:leave-end="-translate-x-full"
-               class="fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-indigo-800 to-indigo-900 text-white lg:static lg:inset-0 shadow-xl flex flex-col">
-
+        <aside :class="{'open': sidebarOpen}"
+               class="sidebar-fixed bg-gradient-to-b from-indigo-800 to-indigo-900 text-white shadow-xl flex flex-col transition-all">
             <!-- Header -->
             <div class="flex items-center justify-between p-4 border-b border-indigo-700">
                 <div class="flex items-center space-x-3">
@@ -82,7 +133,7 @@
 
             <!-- Navigation -->
             <nav class="mt-4 space-y-1 px-2 flex-1 overflow-y-auto">
-                <a href="{{ route('admin.admin.dashboard') }}" 
+                <a href="{{ route('admin.dashboard') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.dashboard') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-speedometer2 mr-3 text-indigo-300"></i> Dashboard
                 </a>
@@ -126,10 +177,14 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col lg:ml-64 transition-all duration-300">
+        <!-- Navigation Bar -->
+        <div class="navbar-fixed bg-white shadow-sm transition-all">
             @include('layouts.adminNavigation')
-            <main class="flex-1 p-4 sm:p-6 bg-gray-50">
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content transition-all">
+            <main class="p-4 sm:p-6 bg-gray-50">
                 <div class="max-w-7xl mx-auto">
                     @yield('content')
                 </div>
@@ -137,14 +192,27 @@
         </div>
 
         <!-- Overlay (Mobile) -->
-        <div x-show="sidebarOpen" @click="sidebarOpen = false"
-             x-transition:enter="overlay-transition"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="overlay-transition"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-black/50 z-30 lg:hidden"></div>
+        <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false"
+             class="fixed inset-0 bg-black/50 z-30 lg:hidden transition-opacity"></div>
     </div>
+
+    <script>
+        // Handle sidebar state on resize and page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close sidebar on mobile by default
+            if (window.innerWidth < 1024) {
+                Alpine.store('sidebarOpen', false);
+            }
+            
+            // Close sidebar when clicking on a link (mobile)
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024) {
+                        Alpine.store('sidebarOpen', false);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

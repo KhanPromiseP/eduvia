@@ -22,14 +22,14 @@ use App\Http\Controllers\DashboardController;
 
 
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+Route::get('/', [DashboardController::class, 'index'])
+
     ->name('dashboard');
 
 
@@ -42,22 +42,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 
-
-
-
-// Public Product Routes (using Admin\ProductController)
-Route::controller(\App\Http\Controllers\Admin\ProductController::class)->group(function () {
-    Route::get('/products', 'publicIndex')->name('products.index');
-    Route::get('/products/{product}', 'publicShow')->name('products.show');
 });
 
-});
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [AdController::class, 'generalAnalytics'])
+            ->name('dashboard'); 
+ 
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard', ['header' => 'Dashboard']);
-    })->name('admin.dashboard');
 
+
+
+    // Route::get('//ads/analytics', [AdController::class, 'generalAnalytics'])->name('admin.ads.analytics');
     Route::resource('ads', AdController::class);
     Route::resource('products', ProductController::class);
     Route::resource('email-campaigns', EmailCampaignController::class);
@@ -77,7 +75,8 @@ Route::prefix('ads')->group(function () {
     
     Route::get('/placement/{placement}', [AdController::class, 'getAdsForPlacement']);
     Route::get('/analytics', [AdController::class, 'analytics']);
-});
+})->withoutMiddleware(['auth:admin']); //routes should be public
+
 
 
 
@@ -85,15 +84,21 @@ Route::prefix('ads')->group(function () {
 
 
 // Other Public Routes
+// Public Product Routes (using Admin\ProductController)
+Route::controller(\App\Http\Controllers\Admin\ProductController::class)->group(function () {
+    Route::get('/products', 'publicIndex')->name('products.index');
+    Route::get('/products/{product}', 'publicShow')->name('products.show');
+});
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.submit');
+Route::get('/service', [ServiceController::class, 'index'])->name('service.index');
 
 
 
 Route::middleware(['auth'])->group(function() {
-    Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
-    Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
-    Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.submit');
-    Route::get('/service', [ServiceController::class, 'index'])->name('service.index');
-
+    // Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+   
 
 
     Route::get('checkout/{product}', [CheckoutController::class, 'show'])->name('checkout');
