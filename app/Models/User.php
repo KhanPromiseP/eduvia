@@ -59,4 +59,33 @@ class User extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
+    
+
+
+
+
+    // public function courses()
+    // {
+    //     return $this->belongsToMany(Course::class, 'user_courses')
+    //                 ->withPivot('amount_paid', 'purchased_at')
+    //                 ->withTimestamps();
+    // }
+
+    // public function hasPurchased($courseId)
+    // {
+    //     return $this->courses()->where('course_id', $courseId)->exists();
+    // }
+
+     public function purchasedCourses()
+    {
+        return $this->belongsToMany(Course::class, 'user_courses')
+                    ->withPivot('amount_paid', 'purchased_at')
+                    ->withTimestamps();
+    }
+
+    public function hasPurchased($courseId)
+    {
+        return $this->purchasedCourses()->where('course_id', $courseId)->exists();
+    }
+
 }

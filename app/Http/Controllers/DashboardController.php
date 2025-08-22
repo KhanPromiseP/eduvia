@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product;
+use App\Models\Course;
 
 class DashboardController extends Controller
 {
@@ -11,9 +11,9 @@ class DashboardController extends Controller
 
      public function index()
     {
-        // get all products (or only active ones)
-        $products = Product::all();
+        // get all courses (or only active ones)
+        $courses = Course::all();
 
-        return view('dashboard', compact('products'));
+        return view('dashboard', compact('courses'));
     }
 }

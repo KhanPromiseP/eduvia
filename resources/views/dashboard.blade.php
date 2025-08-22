@@ -1,4 +1,6 @@
-<x-app-layout>
+@extends('layouts.app')
+
+@section('content')
    <body class="font-sans antialiased bg-[#FDFDFC] text-[#1b1b18] flex flex-col min-h-screen">
    
 
@@ -9,103 +11,136 @@
                 Achieve Financial Excellence with Our Digital Products & Expert Services
             </h1>
             <p class="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-                Explore courses and eBooks on wealth building, read our blog for actionable financial tips, and contact us for personalized services to elevate your success.
+                Explore courses on wealth building, read our blog for actionable financial tips, and contact us for personalized services to elevate your success.
             </p>
             
         </div>
     </main>
 
     <!-- Digital Products Section -->
-    <section id="products" class="py-24 px-4 sm:px-6 lg:px-8 bg-[#FDFDFC]">
-        <!-- Product Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
-    @foreach($products->shuffle()->take(3) as $product)
-    <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col mx-2 sm:mx-0">
+   <section id="products" class="py-24 px-4 sm:px-6 lg:px-8 bg-[#FDFDFC]">
+    <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-16">Boost Your Business Knowledge</h2>
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
+        @foreach($courses->shuffle()->take(3) as $course)
+            <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                
+                <!-- Image -->
+                @if($course->image)
+                    <div class="overflow-hidden">
+                        <img src="{{ asset('storage/'.$course->image) }}" 
+                             alt="{{ $course->title }}" 
+                             class="w-full h-48 object-cover transform transition-transform duration-300 hover:scale-105">
+                    </div>
+                @else
+                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" 
+                             viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                @endif
 
-        <!-- Image -->
-        @if($product->thumbnail)
-            <div class="overflow-hidden">
-                <img src="{{ asset('storage/'.$product->thumbnail) }}" 
-                     alt="{{ $product->title }}" 
-                     class="w-full h-48 object-cover transform transition-transform duration-300 hover:scale-105">
-            </div>
-        @else
-            <div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded-xl">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" 
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-            </div>
-        @endif
+                <!-- Course Info -->
+                <div class="p-4 flex flex-col flex-grow">
+                    <h3 class="font-bold text-lg mb-2">{{ $course->title }}</h3>
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {{ Str::limit($course->description, 100) }}
+                    </p>
 
-        <!-- Product Info -->
-        <div class="p-5 flex flex-col flex-grow">
-            <h3 class="text-lg font-semibold text-gray-900">{{ $product->title }}</h3>
-            <p class="mt-2 text-sm text-gray-500 line-clamp-3 flex-grow">{{ $product->description }}</p>
-            <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                <span class="text-lg font-bold text-gray-900">${{ number_format($product->price, 2) }}</span>
-                <div class="flex space-x-2">
-                    <a href="{{ route('products.show', $product) }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors font-medium">
-                        View
-                    </a>
-                    <a href="{{ route('products.show', $product) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors font-medium">
-                        Purchase
-                    </a>
+                    <div class="flex justify-between items-center mt-auto">
+                        <span class="text-indigo-600 font-bold">${{ number_format($course->price, 2) }}</span>
+                        <a href="{{ route('courses.show', $course) }}" 
+                           class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                            View Details
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endforeach
     </div>
-    @endforeach
-</div>
 
-<!-- View More Button -->
-<div class="flex justify-center mt-8">
-    <a href="{{ route('products.index') }}" 
-       class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold rounded-full shadow-lg transition-colors duration-300">
-        View More Products
-    </a>
-</div>
+    <!-- View More Button -->
+    <div class="flex justify-center mt-8">
+        <a href="{{ route('courses.index') }}" 
+           class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold rounded-full shadow-lg transition-colors duration-300">
+            View More Courses
+        </a>
+    </div>
+</section>
 
-    </section>
 
     <!-- Blog Teaser Section -->
-    <section id="blog" class="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div class="max-w-7xl mx-auto">
-            <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-16">Insights on Financial Excellence</h2>
-            <p class="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">Read our blog for tips on wealth building, investment strategies, and achieving financial success.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Blog Card 1 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Wealth+Tips" alt="Blog Post">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">5 Ways to Build Wealth in 2025</h3>
-                        <p class="text-gray-600 mb-4">Discover strategies to grow your finances this year.</p>
-                       
-                    </div>
-                </div>
-                <!-- Blog Card 2 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Investment+Guide" alt="Blog Post">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Beginner's Guide to Smart Investing</h3>
-                        <p class="text-gray-600 mb-4">Step-by-step tips for starting your investment journey.</p>
-                        
-                    </div>
-                </div>
-                <!-- Blog Card 3 -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Budgeting+Secrets" alt="Blog Post">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Budgeting Secrets for Financial Freedom</h3>
-                        <p class="text-gray-600 mb-4">Learn how to manage your money effectively.</p>
-                        
-                    </div>
+<section id="blog" class="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-6">
+            Insights on Financial Excellence
+        </h2>
+        <p class="text-lg text-gray-600 text-center mb-12 max-w-3xl mx-auto">
+            Read our blog for tips on wealth building, investment strategies, and achieving financial success.
+        </p>
+
+        <!-- Blog Teasers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- Blog Card 1 -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 text-xs font-semibold rounded-full mb-3">
+                        Wealth
+                    </span>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                        2025 Wealth Building Strategies
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Discover strategies to grow your finances this year.
+                    </p>
                 </div>
             </div>
-           
+
+            <!-- Blog Card 2 -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-green-100 text-green-600 text-xs font-semibold rounded-full mb-3">
+                        Investing
+                    </span>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                        Beginner's Guide to Smart Investing
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Step-by-step tips for starting your investment journey.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Blog Card 3 -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-purple-100 text-purple-600 text-xs font-semibold rounded-full mb-3">
+                        Budgeting
+                    </span>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                        Budgeting Secrets for Financial Freedom
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Learn how to manage your money effectively.
+                    </p>
+                </div>
+            </div>
+
         </div>
-    </section>
+
+        <!-- View More Button -->
+        <div class="flex justify-center mt-12">
+            <a href="{{ route('blog.index') }}" 
+               class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold rounded-full shadow-lg transition-colors duration-300">
+                Explore Our Blogs
+            </a>
+        </div>
+    </div>
+</section>
+
 
 
         <div class="max-w-7xl mx-auto">
@@ -161,4 +196,4 @@
     </section>
 
 </body>
-</x-app-layout> 
+@endsection

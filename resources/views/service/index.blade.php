@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.app')
+
+@section('content')
     <title>Our Services - Financial Excellence</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -71,10 +69,17 @@
         .btn-glow:hover {
             box-shadow: 0 0 25px rgba(255, 107, 53, 0.5);
         }
+
+      li{
+            color: rgb(142, 170, 218);
+        }
+
+
+      
     </style>
 </head>
 <body class="bg-gradient-to-br from-dark via-gray-900 to-primary text-white">
-    <x-app-layout>
+  
         <!-- Hero Section -->
         <section class="relative py-20 px-4 overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20"></div>
@@ -124,9 +129,10 @@
                                 Retirement Planning Calculator
                             </li>
                         </ul>
-                        <button class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow">
-                            Explore Products
-                        </button>
+                        <a href="/contact" class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow rounded-xl inline-block text-center">
+                            Get Started
+                        </a>
+
                     </div>
 
                     <!-- Personal Consultation -->
@@ -152,9 +158,9 @@
                                 Ongoing Support & Follow-up
                             </li>
                         </ul>
-                        <button class="w-full bg-accent hover:bg-orange-600 py-3 rounded-xl font-semibold transition-all btn-glow">
-                            Book Session
-                        </button>
+                        <a href="/contact" class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow rounded-xl inline-block text-center">
+                            Get Started
+                        </a>
                     </div>
 
                     <!-- Investment Training -->
@@ -180,9 +186,9 @@
                                 Certificate Programs
                             </li>
                         </ul>
-                        <button class="w-full bg-purple-600 hover:bg-purple-700 py-3 rounded-xl font-semibold transition-all btn-glow">
-                            Start Learning
-                        </button>
+                         <a href="/contact" class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow rounded-xl inline-block text-center">
+                            Get Started
+                        </a>
                     </div>
 
                     <!-- Portfolio Management -->
@@ -208,9 +214,9 @@
                                 Risk Management
                             </li>
                         </ul>
-                        <button class="w-full bg-green-600 hover:bg-green-700 py-3 rounded-xl font-semibold transition-all btn-glow">
-                            Manage Portfolio
-                        </button>
+                         <a href="/contact" class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow rounded-xl inline-block text-center">
+                            Get Started
+                        </a>
                     </div>
 
                     <!-- Financial Planning -->
@@ -236,9 +242,9 @@
                                 Wealth Building Strategies
                             </li>
                         </ul>
-                        <button class="w-full bg-yellow-600 hover:bg-yellow-700 py-3 rounded-xl font-semibold transition-all btn-glow">
-                            Plan Your Future
-                        </button>
+                         <a href="/contact" class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow rounded-xl inline-block text-center">
+                            Get Started
+                        </a>
                     </div>
 
                     <!-- Tax Optimization -->
@@ -264,9 +270,9 @@
                                 Annual Tax Reviews
                             </li>
                         </ul>
-                        <button class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-semibold transition-all btn-glow">
-                            Optimize Taxes
-                        </button>
+                        <a href="/contact" class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow rounded-xl inline-block text-center">
+                            Get Started
+                        </a>
                     </div>
 
                 </div>
@@ -278,16 +284,16 @@
             <div class="container mx-auto max-w-4xl text-center">
                 <div class="glass-effect rounded-3xl p-12 animate-fade-in">
                     <h2 class="text-4xl font-bold mb-6 text-gradient">Ready to Transform Your Financial Future?</h2>
-                    <p class="text-xl text-gray-300 mb-8 leading-relaxed">
+                    <p class="text-xl text-gray-700 mb-8 leading-relaxed">
                         Join thousands of clients who have achieved financial excellence with our proven strategies and expert guidance.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <button class="px-8 py-4 bg-gradient-to-r from-accent to-orange-600 rounded-full font-bold text-lg hover:shadow-lg hover:shadow-accent/25 transition-all transform hover:scale-105">
+                         <a href="/contact" class="w-full bg-primary hover:bg-secondary py-3 rounded-xl font-semibold transition-all btn-glow rounded-xl inline-block text-center">
                             Get Started Today
-                        </button>
-                        <button class="px-8 py-4 bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-full font-bold text-lg transition-all">
+                        </a>
+                        {{-- <button class="px-8 py-4 bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-full font-bold text-lg transition-all">
                             Schedule Consultation
-                        </button>
+                        </button> --}}
                     </div>
                 </div>
             </div>
@@ -300,7 +306,7 @@
                     <div class="animate-slide-up">
                         <i class="fas fa-phone text-3xl text-accent mb-4"></i>
                         <h3 class="text-lg font-semibold mb-2">Call Us</h3>
-                        <p class="text-gray-400">+1 (555) 123-FINANCE</p>
+                        <p class="text-gray-400">+ (680) 834 767</p>
                     </div>
                     <div class="animate-slide-up">
                         <i class="fas fa-envelope text-3xl text-gold mb-4"></i>
@@ -309,13 +315,13 @@
                     </div>
                     <div class="animate-slide-up">
                         <i class="fas fa-calendar-alt text-3xl text-secondary mb-4"></i>
-                        <h3 class="text-lg font-semibold mb-2">Office Hours</h3>
+                        <h3 class="text-lg font-semibold mb-2">Availability</h3>
                         <p class="text-gray-400">Mon-Fri: 9AM-6PM EST</p>
                     </div>
                 </div>
             </div>
         </section>
-    </x-app-layout>
+ 
 
     <script>
         // Intersection Observer for animations
@@ -354,4 +360,4 @@
         });
     </script>
 </body>
-</html>
+@endsection

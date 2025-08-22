@@ -12,6 +12,10 @@
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
+
+    <!-- In your layouts/admin.blade.php head section -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <!-- Fonts -->
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
@@ -141,9 +145,10 @@
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.ads.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-megaphone-fill mr-3 text-indigo-300"></i> Advertisements
                 </a>
-                <a href="{{ route('admin.products.index') }}" 
-                   class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.products.*') ? 'bg-indigo-700 active' : '' }}">
-                    <i class="bi bi-box-seam mr-3 text-indigo-300"></i> Products
+               
+                <a href="{{ route('admin.courses.index') }}" 
+                   class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.courses.*') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="bi bi-box-seam mr-3 text-indigo-300"></i> Courses
                     <span class="ml-auto px-2 py-1 text-xs font-bold rounded-full bg-indigo-600/50">New</span>
                 </a>
                 <a href="{{ route('admin.email-campaigns.index') }}" 

@@ -1,0 +1,28 @@
+# Proper MIME types for video files
+AddType video/mp4 .mp4
+AddType video/webm .webm
+AddType video/ogg .ogv
+AddType video/quicktime .mov
+AddType video/x-msvideo .avi
+AddType video/x-matroska .mkv
+AddType video/x-ms-wmv .wmv
+
+# Proper MIME types for audio files
+AddType audio/mpeg .mp3
+AddType audio/ogg .ogg
+AddType audio/wav .wav
+
+# Proper MIME types for documents
+AddType application/pdf .pdf
+AddType application/msword .doc
+AddType application/vnd.openxmlformats-officedocument.wordprocessingml.document .docx
+AddType application/vnd.ms-excel .xls
+AddType application/vnd.openxmlformats-officedocument.spreadsheetml.sheet .xlsx
+AddType application/vnd.ms-powerpoint .ppt
+AddType application/vnd.openxmlformats-officedocument.presentationml.presentation .pptx
+AddType text/plain .txt
+
+# Enable CORS for media files
+<FilesMatch "\.(mp4|webm|ogg|mp3|wav|pdf)$">
+    Header set Access-Control-Allow-Origin "*"
+</FilesMatch>

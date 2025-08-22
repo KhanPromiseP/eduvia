@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
+
+@section('content')
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>Contact Us - Financial Excellence</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+   
     <script>
         tailwind.config = {
             theme: {
@@ -61,7 +61,7 @@
         
         .input-focus:focus {
             box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
-            border-color: #FF6B35;
+            border-color:rgb(53, 141, 255);
         }
         
         .text-gradient {
@@ -125,7 +125,7 @@
 </head>
 <body class="bg-gradient-to-br from-dark via-gray-900 to-primary text-white min-h-screen">
     
-    <x-app-layout>
+
         <!-- Hero Section -->
         <section class="relative py-16 px-4 overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20"></div>
@@ -135,7 +135,7 @@
                     <h1 class="text-5xl md:text-6xl font-bold mb-6 text-gradient">
                         Get In Touch
                     </h1>
-                    <p class="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
+                    <p class="text-xl md:text-2xl text-gray-700 mb-8 leading-relaxed">
                         Ready to transform your financial future? Let's discuss how our expert services can help you achieve your goals.
                     </p>
                     <div class="flex justify-center items-center space-x-8">
@@ -315,23 +315,17 @@
                         <div class="glass-effect rounded-3xl p-8 animate-slide-up">
                             <h3 class="text-2xl font-bold mb-6 text-gradient flex items-center">
                                 <i class="fas fa-bolt mr-3"></i>
-                                Quick Actions
+                                Quick Reach Out
                             </h3>
                             <div class="space-y-4">
-                                <button class="w-full bg-primary hover:bg-secondary py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center">
-                                    <i class="fas fa-calendar-plus mr-3"></i>
-                                    Schedule Consultation
-                                </button>
+                            
                                 <a href="https://wa.me/{{ env('WHATSAPP_NUMBER') }}" target="_blank" 
                                 class="w-full bg-green-600 hover:bg-green-700 py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center">
                                     <i class="fab fa-whatsapp mr-3"></i>
                                     WhatsApp Chat
                                 </a>
 
-                                <button class="w-full bg-purple-600 hover:bg-purple-700 py-3 px-6 rounded-xl font-semibold transition-all flex items-center justify-center">
-                                    <i class="fas fa-download mr-3"></i>
-                                    Free Resources
-                                </button>
+                             
                             </div>
                         </div>
 
@@ -360,7 +354,7 @@
                 </div>
             </div>
         </section>
-    </x-app-layout>
+
 
     <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -516,4 +510,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </body>
-</html>
+@endsection
+

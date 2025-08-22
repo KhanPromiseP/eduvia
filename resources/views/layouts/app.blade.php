@@ -13,6 +13,8 @@
             href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
         />
 
+        <script src="https://cdn.tailwindcss.com"></script>
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net" />
         <link
@@ -232,7 +234,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     @endif
 
                     {{-- Page Content --}}
-                    {{ $slot }}
+                    {{-- {{ $slot }} --}}
+
+                    @yield('content')
+
+                    {{-- Success and Error Messages --}}
 
                     {{-- In-content ads (after main content) --}}
                     @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->count() > 1)
@@ -583,8 +589,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
         </script>
 
-<div class="bottom-0 bg-white border-t shadow-lg z-50">
-   <footer class="bg-gray-900 text-gray-300 mt-10 relative z-40">
+
+   <footer class="bg-gray-900 text-gray-300 mt-10 relative ">
     <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
         <!-- Brand / About -->
@@ -667,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </footer>
 
 
-</div>
+
         
     </body>
 </html>

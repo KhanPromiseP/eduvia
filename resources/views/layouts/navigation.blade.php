@@ -15,10 +15,15 @@
             <!-- Desktop Links -->
             <div class="hidden sm:flex sm:space-x-8 sm:ml-10 items-center">
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Home</x-nav-link>
-                <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">Products</x-nav-link>
+                <x-nav-link :href="route('courses.index')" :active="request()->routeIs('courses.*')">Courses</x-nav-link>
                 <x-nav-link :href="route('blog.index')" :active="request()->routeIs('blog.*')">Blog</x-nav-link>
                 <x-nav-link :href="route('contact.index')" :active="request()->routeIs('contact.*')">Contact</x-nav-link>
                 <x-nav-link :href="route('service.index')" :active="request()->routeIs('service.*')">Services</x-nav-link>
+
+                @auth
+                <x-nav-link :href="route('userdashboard')" :active="request()->routeIs('userdashboard')">MyDashboard</x-nav-link>
+                @endauth
+                
 
                 @auth
                 <!-- User Profile / Dropdown only for desktop (authenticated users) -->
@@ -43,7 +48,7 @@
                             <div class="text-sm text-gray-500">{{ Auth::user()->email }}</div>
                         </div>
 
-                        <x-dropdown-link :href="route('dashboard')">Dashboard</x-dropdown-link>
+                        <x-dropdown-link :href="route('userdashboard')">MyDashboard</x-dropdown-link>
                         <x-dropdown-link :href="route('profile.edit')">Profile</x-dropdown-link>
                         @if(Auth::user()->is_admin)
                             <x-dropdown-link :href="route('admin.dashboard')">Admin Dashboard</x-dropdown-link>
@@ -94,6 +99,8 @@
         </div>
     </div>
 
+    <div x-show="open" x-cloak class="sm:hidden">
+
     @auth
     <!-- Off-Canvas Mobile Menu (only for authenticated users) -->
     <div x-show="open" 
@@ -136,13 +143,15 @@
             <!-- Mobile Links & Profile -->
             <div class="py-2 px-4 space-y-1">
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Home</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">Products</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('courses.index')" :active="request()->routeIs('courses.*')">Courses</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('blog.index')" :active="request()->routeIs('blog.*')">Blog</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('contact.index')" :active="request()->routeIs('contact.*')">Contact</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('service.index')" :active="request()->routeIs('service.*')">Services</x-responsive-nav-link>
 
                 <!-- Profile Links (replaces desktop dropdown on mobile) -->
                 <x-responsive-nav-link :href="route('profile.edit')">Profile</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('userdashboard')">MyDashboard</x-responsive-nav-link>
+
                 @if(Auth::user()->is_admin)
                     <x-responsive-nav-link :href="route('admin.dashboard')">Admin Dashboard</x-responsive-nav-link>
                 @endif
@@ -158,4 +167,6 @@
         </div>
     </div>
     @endauth
+
+    </div>
 </nav>
