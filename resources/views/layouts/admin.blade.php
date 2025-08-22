@@ -160,10 +160,10 @@
                     <i class="bi bi-people-fill mr-3 text-indigo-300"></i> Subscribers
                     <span class="ml-auto px-2 py-1 text-xs font-bold rounded-full bg-indigo-600/50">+24</span>
                 </a>
-                <a href="{{ route('admin.analytics.index') }}" 
+                {{-- <a href="{{ route('admin.analytics.index') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.analytics.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-bar-chart-line-fill mr-3 text-indigo-300"></i> Analytics
-                </a>
+                </a> --}}
                 <a href="{{ route('admin.payments.index') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.payments.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-credit-card-2-front-fill mr-3 text-indigo-300"></i> Payments

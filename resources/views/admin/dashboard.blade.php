@@ -1,35 +1,40 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Ads Analytics Dashboard</h1>
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Ads Analytics Dashboard</h1>
     
     <!-- Date Range Filter -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Date Range</h6>
+    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Date Range</h3>
         </div>
-        <div class="card-body">
+        <div class="px-4 py-5 sm:p-6">
             <form method="GET" action="{{ route('admin.dashboard') }}">
-                <div class="form-row align-items-center">
-                    <div class="col-md-3">
-                        <label for="start_date">Start Date</label>
-                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $startDate }}">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                               id="start_date" name="start_date" value="{{ $startDate }}">
                     </div>
-                    <div class="col-md-3">
-                        <label for="end_date">End Date</label>
-                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $endDate }}">
+                    <div>
+                        <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                               id="end_date" name="end_date" value="{{ $endDate }}">
                     </div>
-                    <div class="col-md-3">
-                        <label for="date_range">Quick Range</label>
-                        <select class="form-control" id="date_range" name="date_range">
+                    <div>
+                        <label for="date_range" class="block text-sm font-medium text-gray-700 mb-1">Quick Range</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                                id="date_range" name="date_range">
                             @foreach($dateRanges as $value => $label)
                                 <option value="{{ $value }}" {{ request('date_range') == $value ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary mt-md-4">Apply Filter</button>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Apply Filter
+                        </button>
                     </div>
                 </div>
             </form>
@@ -37,92 +42,100 @@
     </div>
     
     <!-- Overview Cards -->
-    <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Views</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($analytics['overview']['total_views']) }}</div>
-                            <div class="mt-2 text-muted">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Total Views Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-blue-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-eye text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Views</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ number_format($analytics['overview']['total_views']) }}</dd>
+                            <dt class="text-xs text-gray-500 mt-1">
                                 @if($analytics['overview']['views_change'] > 0)
-                                    <span class="text-success"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['views_change'] }}%</span>
+                                    <span class="text-green-600"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['views_change'] }}%</span>
                                 @elseif($analytics['overview']['views_change'] < 0)
-                                    <span class="text-danger"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['views_change']) }}%</span>
+                                    <span class="text-red-600"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['views_change']) }}%</span>
                                 @else
-                                    <span class="text-muted">No change</span>
+                                    <span class="text-gray-500">No change</span>
                                 @endif
                                 from previous period
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-eye fa-2x text-gray-300"></i>
-                        </div>
+                            </dt>
+                        </dl>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Clicks</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ number_format($analytics['overview']['total_clicks']) }}</div>
-                            <div class="mt-2 text-muted">
+        <!-- Total Clicks Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-mouse-pointer text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Clicks</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ number_format($analytics['overview']['total_clicks']) }}</dd>
+                            <dt class="text-xs text-gray-500 mt-1">
                                 @if($analytics['overview']['clicks_change'] > 0)
-                                    <span class="text-success"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['clicks_change'] }}%</span>
+                                    <span class="text-green-600"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['clicks_change'] }}%</span>
                                 @elseif($analytics['overview']['clicks_change'] < 0)
-                                    <span class="text-danger"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['clicks_change']) }}%</span>
+                                    <span class="text-red-600"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['clicks_change']) }}%</span>
                                 @else
-                                    <span class="text-muted">No change</span>
+                                    <span class="text-gray-500">No change</span>
                                 @endif
                                 from previous period
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-mouse-pointer fa-2x text-gray-300"></i>
-                        </div>
+                            </dt>
+                        </dl>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">CTR</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $analytics['overview']['ctr'] }}%</div>
-                            <div class="mt-2 text-muted">
-                                Click-through rate
-                            </div>
+        <!-- CTR Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-cyan-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-percent text-cyan-600"></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-percent fa-2x text-gray-300"></i>
-                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">CTR</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ $analytics['overview']['ctr'] }}%</dd>
+                            <dt class="text-xs text-gray-500 mt-1">Click-through rate</dt>
+                        </dl>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Avg. Time Spent</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $analytics['overview']['avg_time_spent'] }}s</div>
-                            <div class="mt-2 text-muted">
-                                Per view
-                            </div>
+        <!-- Avg. Time Spent Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-yellow-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-clock text-yellow-600"></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Avg. Time Spent</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ $analytics['overview']['avg_time_spent'] }}s</dd>
+                            <dt class="text-xs text-gray-500 mt-1">Per view</dt>
+                        </dl>
                     </div>
                 </div>
             </div>
@@ -130,39 +143,42 @@
     </div>
     
     <!-- Performance Trends Chart -->
-    <div class="row">
-        <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Performance Trends</h6>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Performance Trends</h3>
                 </div>
-                <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="performanceChart" height="300"></canvas>
+                <div class="p-4 sm:p-6">
+                    <div class="chart-container" style="position: relative; height:300px;">
+                        <canvas id="performanceChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-xl-4 col-lg-5">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Device Breakdown</h6>
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Device Breakdown</h3>
                 </div>
-                <div class="card-body">
-                    <div class="chart-pie pt-4 pb-2">
-                        <canvas id="deviceChart" height="250"></canvas>
+                <div class="p-4 sm:p-6">
+                    <div class="chart-container" style="position: relative; height:250px;">
+                        <canvas id="deviceChart"></canvas>
                     </div>
-                    <div class="mt-4 text-center small">
-                        @foreach($analytics['device_breakdown'] as $device => $data)
-                            <span class="mr-2">
-                                <i class="fas fa-circle 
-                                    @if($device == 'Desktop') text-primary
-                                    @elseif($device == 'Mobile') text-success
-                                    @else text-info
-                                    @endif"></i> {{ $device }} ({{ $data['percentage'] }}%)
-                            </span>
-                        @endforeach
+                    <div class="mt-4 text-center text-sm text-gray-600">
+                        <div class="flex flex-wrap justify-center gap-3">
+                            @foreach($analytics['device_breakdown'] as $device => $data)
+                                <span class="inline-flex items-center">
+                                    <span class="w-3 h-3 rounded-full 
+                                        @if($device == 'Desktop') bg-blue-500
+                                        @elseif($device == 'Mobile') bg-green-500
+                                        @else bg-cyan-500
+                                        @endif mr-1"></span>
+                                    {{ $device }} ({{ $data['percentage'] }}%)
+                                </span>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
@@ -175,8 +191,73 @@
 </div>
 @endsection
 
+@push('styles')
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+/* Custom styles for better mobile experience */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .text-lg {
+        font-size: 1.125rem;
+    }
+    
+    .text-2xl {
+        font-size: 1.5rem;
+    }
+}
+
+/* Chart responsiveness */
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Card hover effects */
+.bg-white {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bg-white:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Form element styling */
+input, select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Button styling */
+button {
+    transition: background-color 0.2s ease;
+}
+
+/* Responsive text sizing */
+@media (max-width: 768px) {
+    .text-sm {
+        font-size: 0.75rem;
+    }
+    
+    .text-xs {
+        font-size: 0.7rem;
+    }
+}
+</style>
+@endpush
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
 <script>
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -192,14 +273,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     {
                         label: "Views",
                         tension: 0.3,
-                        backgroundColor: "rgba(78, 115, 223, 0.05)",
-                        borderColor: "rgba(78, 115, 223, 1)",
+                        backgroundColor: "rgba(59, 130, 246, 0.05)",
+                        borderColor: "rgba(59, 130, 246, 1)",
                         pointRadius: 3,
-                        pointBackgroundColor: "rgba(78, 115, 223, 1)",
-                        pointBorderColor: "rgba(78, 115, 223, 1)",
+                        pointBackgroundColor: "rgba(59, 130, 246, 1)",
+                        pointBorderColor: "rgba(59, 130, 246, 1)",
                         pointHoverRadius: 5,
-                        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
-                        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                        pointHoverBackgroundColor: "rgba(59, 130, 246, 1)",
+                        pointHoverBorderColor: "rgba(59, 130, 246, 1)",
                         pointHitRadius: 10,
                         pointBorderWidth: 2,
                         data: {!! json_encode(array_values($analytics['performance_trends']['views'])) !!},
@@ -207,14 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     {
                         label: "Clicks",
                         tension: 0.3,
-                        backgroundColor: "rgba(28, 200, 138, 0.05)",
-                        borderColor: "rgba(28, 200, 138, 1)",
+                        backgroundColor: "rgba(16, 185, 129, 0.05)",
+                        borderColor: "rgba(16, 185, 129, 1)",
                         pointRadius: 3,
-                        pointBackgroundColor: "rgba(28, 200, 138, 1)",
-                        pointBorderColor: "rgba(28, 200, 138, 1)",
+                        pointBackgroundColor: "rgba(16, 185, 129, 1)",
+                        pointBorderColor: "rgba(16, 185, 129, 1)",
                         pointHoverRadius: 5,
-                        pointHoverBackgroundColor: "rgba(28, 200, 138, 1)",
-                        pointHoverBorderColor: "rgba(28, 200, 138, 1)",
+                        pointHoverBackgroundColor: "rgba(16, 185, 129, 1)",
+                        pointHoverBorderColor: "rgba(16, 185, 129, 1)",
                         pointHitRadius: 10,
                         pointBorderWidth: 2,
                         data: {!! json_encode(array_values($analytics['performance_trends']['clicks'])) !!},
@@ -223,12 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             options: {
                 maintainAspectRatio: false,
+                responsive: true,
                 layout: {
                     padding: {
                         left: 10,
-                        right: 25,
-                        top: 25,
-                        bottom: 0
+                        right: 10,
+                        top: 10,
+                        bottom: 10
                     }
                 },
                 scales: {
@@ -236,23 +318,26 @@ document.addEventListener('DOMContentLoaded', function() {
                         type: 'time',
                         time: {
                             unit: 'day',
-                            tooltipFormat: 'MMM d, yyyy'
+                            tooltipFormat: 'MMM D'
                         },
                         grid: {
                             display: false,
                             drawBorder: false
                         },
                         ticks: {
-                            maxTicksLimit: 7
+                            maxTicksLimit: 6,
+                            maxRotation: 0,
+                            autoSkip: true
                         }
                     },
                     y: {
+                        beginAtZero: true,
                         ticks: {
                             maxTicksLimit: 5,
                             padding: 10,
                         },
                         grid: {
-                            color: "rgb(234, 236, 244)",
+                            color: "rgba(0, 0, 0, 0.05)",
                             drawBorder: false,
                             borderDash: [2],
                             zeroLineBorderDash: [2]
@@ -262,26 +347,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top'
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
                     },
                     tooltip: {
-                        backgroundColor: "rgb(255,255,255)",
-                        bodyColor: "#858796",
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
+                        bodyColor: "#374151",
+                        titleColor: '#111827',
                         titleMarginBottom: 10,
-                        titleColor: '#6e707e',
                         titleFont: {
-                            size: 14
+                            size: 14,
+                            weight: 'bold'
                         },
-                        borderColor: '#dddfeb',
+                        borderColor: '#e5e7eb',
                         borderWidth: 1,
-                        padding: 15,
+                        padding: 12,
                         displayColors: false,
                         intersect: false,
                         mode: 'index',
                         caretPadding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toLocaleString();
+                            }
+                        }
                     }
                 }
             }
+        });
+        
+        // Add resize listener to handle chart responsiveness
+        window.addEventListener('resize', function() {
+            performanceChart.resize();
         });
     }
 
@@ -295,29 +395,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: {!! json_encode(array_keys($analytics['device_breakdown'])) !!},
                 datasets: [{
                     data: {!! json_encode(array_column($analytics['device_breakdown'], 'percentage')) !!},
-                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
-                    hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
-                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    backgroundColor: ['#3b82f6', '#10b981', '#06b6d4'],
+                    hoverBackgroundColor: ['#2563eb', '#059669', '#0891b2'],
+                    hoverBorderColor: "rgba(255, 255, 255, 0.8)",
+                    borderWidth: 2,
                 }],
             },
             options: {
                 maintainAspectRatio: false,
+                responsive: true,
+                cutout: '70%',
                 plugins: {
-                    tooltip: {
-                        backgroundColor: "rgb(255,255,255)",
-                        bodyColor: "#858796",
-                        borderColor: '#dddfeb',
-                        borderWidth: 1,
-                        padding: 15,
-                        displayColors: false,
-                        caretPadding: 10,
-                    },
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
+                        bodyColor: "#374151",
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
                     }
-                },
-                cutout: '80%',
+                }
             },
+        });
+        
+        // Add resize listener to handle chart responsiveness
+        window.addEventListener('resize', function() {
+            deviceChart.resize();
         });
     }
 });

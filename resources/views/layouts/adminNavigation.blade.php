@@ -2,7 +2,7 @@
     <div class="max-w-7xl mx-auto flex justify-between h-16 items-center">
         
         <!-- Left Navigation -->
-        <div class="flex items-center space-x-8">
+        <div class="flex text-black items-center space-x-8 text-bold">
             <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-nav-link>

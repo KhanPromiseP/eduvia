@@ -18,11 +18,11 @@
         @endif
 
         {{-- Filters --}}
-        <form method="GET" action="{{ route('admin.ads.index') }}" class="mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <form method="GET" action="{{ route('admin.ads.index') }}" class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {{-- Status --}}
             <div>
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select id="status" name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                     <option value="">All Statuses</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -38,14 +38,14 @@
                     name="search"
                     placeholder="Search by title..."
                     value="{{ request('search') }}"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
             </div>
 
             {{-- Placement --}}
             <div>
                 <label for="placement" class="block text-sm font-medium text-gray-700 mb-1">Placement</label>
-                <select id="placement" name="placement" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select id="placement" name="placement" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                     <option value="">Any Placement</option>
                     @foreach($placements as $value => $label)
                         <option value="{{ $value }}" {{ request('placement') == $value ? 'selected' : '' }}>{{ $label }}</option>
@@ -56,7 +56,7 @@
             {{-- Type --}}
             <div>
                 <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Ad Type</label>
-                <select id="type" name="type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <select id="type" name="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                     <option value="">All Types</option>
                     @foreach($adTypes as $value => $label)
                         <option value="{{ $value }}" {{ request('type') == $value ? 'selected' : '' }}>{{ $label }}</option>
@@ -72,7 +72,7 @@
                     id="start_date"
                     name="start_date" 
                     value="{{ request('start_date') }}" 
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
             </div>
 
@@ -84,7 +84,7 @@
                     id="end_date"
                     name="end_date" 
                     value="{{ request('end_date') }}" 
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
             </div>
 
@@ -98,13 +98,13 @@
                     min="1" 
                     max="10" 
                     value="{{ request('weight') }}" 
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     placeholder="1-10"
                 >
             </div>
 
             {{-- Random Display --}}
-            <div class="flex items-center mt-6">
+            <div class="flex items-center">
                 <input 
                     type="checkbox" 
                     id="is_random" 
@@ -117,15 +117,14 @@
             </div>
 
             {{-- Submit and Reset Buttons --}}
-            <div class="flex space-x-4 mt-6 md:col-span-4">
+            <div class="flex space-x-2 sm:col-span-2 lg:col-span-3 xl:col-span-4">
                 <button
                     type="submit"
-                    class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                
+                    class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <i class="bi bi-funnel-fill mr-2"></i> Filter
                 </button>
                 <a href="{{ route('admin.ads.index') }}" 
-                   class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                   class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <i class="bi bi-arrow-counterclockwise mr-2"></i> Reset
                 </a>
             </div>
@@ -134,135 +133,214 @@
         {{-- Create New Ad Button --}}
         <div class="mb-6">
             <a href="{{ route('admin.ads.create') }}" 
-               class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+               class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 <i class="bi bi-plus-circle mr-2"></i> Create New Ad
             </a>
         </div>
 
+        {{-- Desktop Table (hidden on mobile) --}}
+        <div class="hidden md:block overflow-x-auto bg-white rounded-lg shadow">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creator</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placement</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($ads as $ad)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ Str::limit($ad->title, 20) }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{{ $ad->type }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ $ad->user->name ?? 'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{{ $ad->placement ?? 'Any' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap">
+                            @if($ad->is_active)
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    Active
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                                    Inactive
+                                </span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ $ad->start_at?->format('M j, Y') ?? '-' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ $ad->end_at?->format('M j, Y') ?? '-' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <a href="{{ route('admin.ads.show', $ad->id) }}" class="text-blue-600 hover:text-blue-900" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('admin.ads.edit', $ad->id) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ route('admin.ads.destroy', $ad->id) }}" method="POST" class="inline"
+                                    onsubmit="return confirm('Are you sure you want to delete this ad? This action cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                            No ads found.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-        {{-- Ads Table --}}
-       <div class="overflow-x-auto bg-white rounded-lg shadow">
-    <table class="min-w-full divide-y divide-gray-200 table-fixed">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Type</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Creator</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Product</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Placement</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Status</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Start Date</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">End Date</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Weight</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Impressions</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Clicks</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Random</th>
-                <th class="w-[100px] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Type</th>
-                <th class="w-[100px] px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider overflow-x-auto whitespace-nowrap">Actions</th>
-            </tr>
-        </thead>
-
-        <tbody class="bg-white divide-y divide-gray-200">
+        {{-- Mobile Cards (shown on mobile) --}}
+        <div class="md:hidden space-y-4">
             @forelse($ads as $ad)
-            <tr class="hover:bg-gray-50">
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->title }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap capitalize">{{ $ad->type }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->user->name ?? 'N/A' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->product->name ?? 'N/A' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap capitalize">{{ $ad->placement ?? 'Any' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">
-                    @if($ad->is_active)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                            Active
-                        </span>
-                    @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                            Inactive
-                        </span>
-                    @endif
-                </td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->start_at?->format('Y-m-d H:i') ?? '-' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->end_at?->format('Y-m-d H:i') ?? '-' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->weight ?? '-' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->max_impressions ?? 'Unlimited' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->max_clicks ?? 'Unlimited' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">{{ $ad->is_random ? 'Yes' : 'No' }}</td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap">
-                    @if($ad->type === 'image')
-                        <img src="{{ $ad->content }}" alt="{{ $ad->title }}" class="h-16 w-auto">
-                    @elseif($ad->type === 'video')
-                        <video src="{{ $ad->content }}" class="h-16 w-auto" controls></video>
-                    @else
-                        <span>{{ $ad->content }}</span>
-                    @endif
-                </td>
-                <td class="w-[100px] px-2 py-4 overflow-x-auto whitespace-nowrap text-center space-x-2">
-                    <a href="{{ route('admin.ads.show', $ad->id) }}" class="text-blue-600 hover:text-blue-900">View</a>
-                    <a href="{{ route('admin.ads.edit', $ad->id) }}" class="text-yellow-600 hover:text-yellow-900">Edit</a>
-                   <form action="{{ route('admin.ads.destroy', $ad->id) }}" method="POST" 
-                        class="inline"
-                        onsubmit="return confirm('Are you sure you want to delete this ad? This action cannot be undone.');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
-                    </form>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-sm font-medium text-gray-900">{{ Str::limit($ad->title, 30) }}</h3>
+                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium {{ $ad->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                        {{ $ad->is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
+                    <div>
+                        <span class="font-medium">Type:</span> {{ $ad->type }}
+                    </div>
+                    <div>
+                        <span class="font-medium">Creator:</span> {{ $ad->user->name ?? 'N/A' }}
+                    </div>
+                    <div>
+                        <span class="font-medium">Placement:</span> {{ $ad->placement ?? 'Any' }}
+                    </div>
+                    <div>
+                        <span class="font-medium">Weight:</span> {{ $ad->weight ?? '-' }}
+                    </div>
+                </div>
 
-                </td>
-            </tr>
+                <div class="text-xs text-gray-600 mb-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="font-medium">Start:</span> {{ $ad->start_at?->format('M j, Y') ?? '-' }}
+                        </div>
+                        <div>
+                            <span class="font-medium">End:</span> {{ $ad->end_at?->format('M j, Y') ?? '-' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                    <div class="text-xs text-gray-500">
+                        {{ $ad->is_random ? 'Random Display: Yes' : '' }}
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="{{ route('admin.ads.show', $ad->id) }}" class="text-blue-600 hover:text-blue-900" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ route('admin.ads.edit', $ad->id) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form action="{{ route('admin.ads.destroy', $ad->id) }}" method="POST" class="inline"
+                            onsubmit="return confirm('Are you sure you want to delete this ad? This action cannot be undone.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-900" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
             @empty
-            <tr>
-                <td colspan="13" class="px-6 py-4 text-center text-gray-500">
-                    No ads found.
-                </td>
-            </tr>
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <p class="text-gray-500">No ads found.</p>
+            </div>
             @endforelse
-        </tbody>
-    </table>
-</div>
+        </div>
 
         {{-- Pagination --}}
-    @if($ads instanceof \Illuminate\Pagination\AbstractPaginator && $ads->hasPages())
-    <div class="mt-4 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-        <div class="flex-1 flex justify-between sm:hidden">
-            @if($ads->onFirstPage())
-                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white opacity-50 cursor-not-allowed">
-                    Previous
-                </span>
-            @else
-                <a href="{{ $ads->previousPageUrl() }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                    Previous
-                </a>
-            @endif
+        @if($ads instanceof \Illuminate\Pagination\AbstractPaginator && $ads->hasPages())
+        <div class="mt-6 px-4 py-3 flex items-center justify-between border-t border-gray-200">
+            <div class="flex-1 flex justify-between sm:hidden">
+                @if($ads->onFirstPage())
+                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white opacity-50 cursor-not-allowed">
+                        Previous
+                    </span>
+                @else
+                    <a href="{{ $ads->previousPageUrl() }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Previous
+                    </a>
+                @endif
 
-            @if($ads->hasMorePages())
-                <a href="{{ $ads->nextPageUrl() }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                    Next
-                </a>
-            @else
-                <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white opacity-50 cursor-not-allowed">
-                    Next
-                </span>
-            @endif
-        </div>
-        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-                <p class="text-sm text-gray-700">
-                    Showing
-                    <span class="font-medium">{{ $ads->firstItem() }}</span>
-                    to
-                    <span class="font-medium">{{ $ads->lastItem() }}</span>
-                    of
-                    <span class="font-medium">{{ $ads->total() }}</span>
-                    results
-                </p>
+                @if($ads->hasMorePages())
+                    <a href="{{ $ads->nextPageUrl() }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Next
+                    </a>
+                @else
+                    <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white opacity-50 cursor-not-allowed">
+                        Next
+                    </span>
+                @endif
             </div>
-            <div>
-                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    {{ $ads->links() }}
-                </nav>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing
+                        <span class="font-medium">{{ $ads->firstItem() }}</span>
+                        to
+                        <span class="font-medium">{{ $ads->lastItem() }}</span>
+                        of
+                        <span class="font-medium">{{ $ads->total() }}</span>
+                        results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {{ $ads->links() }}
+                    </nav>
+                </div>
             </div>
         </div>
-    </div>
-    @endif
+        @endif
     </div>
 </div>
+
+<style>
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .grid-cols-1 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .text-xs {
+        font-size: 0.75rem;
+    }
+    
+    .p-4 {
+        padding: 1rem;
+    }
+}
+
+.fas {
+    font-size: 14px;
+}
+</style>
+
 @endsection

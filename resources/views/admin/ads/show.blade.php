@@ -9,9 +9,10 @@
                     <i class="bi bi-arrow-left text-2xl"></i>
                 </a>
                 <div class="text-white">
-                    <h1 class="text-3xl font-bold">
+                    <h1 class="text-3xl font-bold break-words whitespace-normal">
                         {{ $ad->title ?? 'Untitled Ad' }}
                     </h1>
+
                     <p class="text-blue-100 mt-2 flex items-center space-x-4">
                         <span class="capitalize bg-white/20 px-3 py-1 rounded-full text-sm">
                             {{ $ad->type }} Ad
