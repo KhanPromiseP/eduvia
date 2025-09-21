@@ -120,7 +120,7 @@
                 </button>
             </div>
 
-            <!-- User -->
+       <!-- User -->
             <div class="p-4 border-b border-indigo-700">
                 <div class="flex items-center space-x-3">
                     <div class="relative">
@@ -134,6 +134,7 @@
                     </div>
                 </div>
             </div>
+
 
             <!-- Navigation -->
             <nav class="mt-4 space-y-1 px-2 flex-1 overflow-y-auto">

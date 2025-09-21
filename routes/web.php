@@ -51,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+
 Route::get('/', [DashboardController::class, 'index'])
 
     ->name('dashboard');
@@ -71,7 +72,7 @@ Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard'); 
 
 
@@ -204,5 +205,4 @@ Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])
 
 
 require __DIR__.'/auth.php';
-
 
