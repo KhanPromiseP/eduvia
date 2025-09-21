@@ -26,7 +26,7 @@ public function index(Request $request)
     // Start with the admin scope that shows all ads
     $ads = Ad::forAdmin();
 
-    // Apply filters only if they're explicitly requested
+    // Apply filters - but make status and date filters optional for admin
     if ($request->has('status') && $status = $request->status) {
         $ads->where('is_active', $status === 'active');
     }
@@ -34,16 +34,8 @@ public function index(Request $request)
     if ($request->has('search') && $search = $request->search) {
         $ads->where('title', 'like', "%{$search}%");
     }
-    // Filters
-    if ($status = $request->status) {
-        $ads->where('is_active', $status === 'active');
-    }
 
-    if ($search = $request->search) {
-        $ads->where('title', 'like', "%{$search}%");
-    }
-
-    if ($weight = $request->weight) {
+    if ($request->has('weight') && $weight = $request->weight) {
         $ads->where('weight', $weight);
     }
 
@@ -51,21 +43,22 @@ public function index(Request $request)
         $ads->where('is_random', true);
     }
 
-    if ($startDate = $request->start_date) {
+    // Date filters - but only apply if explicitly requested
+    if ($request->has('start_date') && $startDate = $request->start_date) {
         $ads->where('start_at', '>=', $startDate);
     }
 
-    if ($endDate = $request->end_date) {
+    if ($request->has('end_date') && $endDate = $request->end_date) {
         $ads->where('end_at', '<=', $endDate);
     }
 
-    if ($type = $request->type) {
+    if ($request->has('type') && $type = $request->type) {
         if ($type !== 'all') {
             $ads->where('type', $type);
         }
     }
 
-    if ($placement = $request->placement) {
+    if ($request->has('placement') && $placement = $request->placement) {
         if ($placement !== 'any') {
             $ads->where('placement', $placement);
         }

@@ -2,7 +2,93 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
-    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Ads Analytics Dashboard</h1>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Users/Cources analytics</h1>
+
+    <!-- ADD THIS SECTION: Course and User Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Total Courses Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-purple-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-book text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Courses</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\Course::count() }}</dd>
+                            <dt class="text-xs text-gray-500 mt-1">Published: {{ \App\Models\Course::where('is_published', true)->count() }}</dt>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Users Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-indigo-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-users text-indigo-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\User::count() }}</dd>
+                            <dt class="text-xs text-gray-500 mt-1">Active accounts</dt>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Enrollments Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Enrollments</dt>
+                            <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\UserCourse::count() }}</dd>
+                            <dt class="text-xs text-gray-500 mt-1">Course enrollments</dt>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Revenue Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-yellow-500">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
+                            <dd class="text-lg font-semibold text-gray-900">${{ number_format(\App\Models\Payment::where('status', 'completed')->sum('amount'), 2) }}</dd>
+                            <dt class="text-xs text-gray-500 mt-1">From completed payments</dt>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END OF ADDED SECTION -->
+
+     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Ads Analytics Dashboard</h1>
     
     <!-- Date Range Filter -->
     <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
@@ -35,6 +121,14 @@
                         <button type="submit" class="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             Apply Filter
                         </button>
+                    
+
+
+                   
+                        <a href="{{ route('admin.ads.index') }}" 
+                        class="ml-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <i class="bi bi-plus-circle mr-2"></i> New Ad
+                        </a>
                     </div>
                 </div>
             </form>
@@ -184,10 +278,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Additional sections for geo distribution, top performers, etc. -->
-    <!-- You would add more chart sections here -->
-    
 </div>
 @endsection
 
@@ -261,14 +351,45 @@ button {
 <script>
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Performance Trends Chart
+    console.log('DOM loaded, initializing charts...');
+    
+    // Debug: Check if analytics data is available
+    console.log('Analytics data:', {!! json_encode($analytics) !!});
+
+    // Performance Trends Chart - FIXED VERSION
     const performanceCtx = document.getElementById('performanceChart');
     
     if (performanceCtx) {
+        console.log('Initializing performance chart...');
+        
+        // Prepare data for the chart - FIXED FORMAT
+        const viewsData = {!! json_encode($analytics['performance_trends']['views']) !!};
+        const clicksData = {!! json_encode($analytics['performance_trends']['clicks']) !!};
+        
+        // Convert to proper format for Chart.js
+        const viewsDataset = [];
+        const clicksDataset = [];
+        
+        Object.keys(viewsData).forEach(date => {
+            viewsDataset.push({
+                x: moment(date).format('YYYY-MM-DD'),
+                y: viewsData[date]
+            });
+        });
+        
+        Object.keys(clicksData).forEach(date => {
+            clicksDataset.push({
+                x: moment(date).format('YYYY-MM-DD'),
+                y: clicksData[date]
+            });
+        });
+        
+        console.log('Views dataset:', viewsDataset);
+        console.log('Clicks dataset:', clicksDataset);
+
         const performanceChart = new Chart(performanceCtx, {
             type: 'line',
             data: {
-                labels: {!! json_encode(array_keys($analytics['performance_trends']['views'])) !!},
                 datasets: [
                     {
                         label: "Views",
@@ -283,7 +404,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         pointHoverBorderColor: "rgba(59, 130, 246, 1)",
                         pointHitRadius: 10,
                         pointBorderWidth: 2,
-                        data: {!! json_encode(array_values($analytics['performance_trends']['views'])) !!},
+                        data: viewsDataset,
+                        fill: true,
                     },
                     {
                         label: "Clicks",
@@ -298,7 +420,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         pointHoverBorderColor: "rgba(16, 185, 129, 1)",
                         pointHitRadius: 10,
                         pointBorderWidth: 2,
-                        data: {!! json_encode(array_values($analytics['performance_trends']['clicks'])) !!},
+                        data: clicksDataset,
+                        fill: true,
                     }
                 ],
             },
@@ -318,14 +441,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         type: 'time',
                         time: {
                             unit: 'day',
-                            tooltipFormat: 'MMM D'
+                            tooltipFormat: 'MMM D, YYYY',
+                            displayFormats: {
+                                day: 'MMM D'
+                            }
                         },
                         grid: {
                             display: false,
                             drawBorder: false
                         },
                         ticks: {
-                            maxTicksLimit: 6,
+                            maxTicksLimit: 7,
                             maxRotation: 0,
                             autoSkip: true
                         }
@@ -335,6 +461,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         ticks: {
                             maxTicksLimit: 5,
                             padding: 10,
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
                         },
                         grid: {
                             color: "rgba(0, 0, 0, 0.05)",
@@ -370,6 +499,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         mode: 'index',
                         caretPadding: 10,
                         callbacks: {
+                            title: function(context) {
+                                return moment(context[0].parsed.x).format('MMM D, YYYY');
+                            },
                             label: function(context) {
                                 return context.dataset.label + ': ' + context.parsed.y.toLocaleString();
                             }
@@ -379,35 +511,49 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Add resize listener to handle chart responsiveness
-        window.addEventListener('resize', function() {
-            performanceChart.resize();
-        });
+        console.log('Performance chart initialized successfully');
+    } else {
+        console.error('Performance chart canvas not found');
     }
 
-    // Device Breakdown Chart
+    // Device Breakdown Chart - SIMPLIFIED VERSION
     const deviceCtx = document.getElementById('deviceChart');
     
     if (deviceCtx) {
+        console.log('Initializing device chart...');
+        
+        const deviceLabels = {!! json_encode(array_keys($analytics['device_breakdown'])) !!};
+        const deviceData = {!! json_encode(array_column($analytics['device_breakdown'], 'percentage')) !!};
+        
+        console.log('Device labels:', deviceLabels);
+        console.log('Device data:', deviceData);
+
+        // Create a simple pie chart instead of doughnut for better visibility
         const deviceChart = new Chart(deviceCtx, {
-            type: 'doughnut',
+            type: 'pie', // Changed from doughnut to pie for better visibility
             data: {
-                labels: {!! json_encode(array_keys($analytics['device_breakdown'])) !!},
+                labels: deviceLabels,
                 datasets: [{
-                    data: {!! json_encode(array_column($analytics['device_breakdown'], 'percentage')) !!},
-                    backgroundColor: ['#3b82f6', '#10b981', '#06b6d4'],
-                    hoverBackgroundColor: ['#2563eb', '#059669', '#0891b2'],
+                    data: deviceData,
+                    backgroundColor: ['#3b82f6', '#10b981', '#06b6d4', '#f59e0b', '#ef4444'],
+                    hoverBackgroundColor: ['#2563eb', '#059669', '#0891b2', '#d97706', '#dc2626'],
                     hoverBorderColor: "rgba(255, 255, 255, 0.8)",
                     borderWidth: 2,
+                    hoverOffset: 15,
                 }],
             },
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
-                cutout: '70%',
                 plugins: {
                     legend: {
-                        display: false
+                        display: true, // Changed to true to show legend
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                        }
                     },
                     tooltip: {
                         backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -418,7 +564,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         displayColors: true,
                         callbacks: {
                             label: function(context) {
-                                return context.label + ': ' + context.parsed + '%';
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value}% (${percentage}% of total)`;
                             }
                         }
                     }
@@ -426,10 +576,9 @@ document.addEventListener('DOMContentLoaded', function() {
             },
         });
         
-        // Add resize listener to handle chart responsiveness
-        window.addEventListener('resize', function() {
-            deviceChart.resize();
-        });
+        console.log('Device chart initialized successfully');
+    } else {
+        console.error('Device chart canvas not found');
     }
 });
 </script>

@@ -20,44 +20,69 @@
     <!-- Digital Products Section -->
    <section id="products" class="py-24 px-4 sm:px-6 lg:px-8 bg-[#FDFDFC]">
     <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-16">Boost Your Business Knowledge</h2>
-    <!-- Product Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
-        @foreach($courses->shuffle()->take(3) as $course)
-            <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
-                
-                <!-- Image -->
+     {{-- Courses Grid --}}
+    <div id="coursesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach($courses as $course)
+        <div class="course-card border rounded-lg overflow-hidden hover:shadow-xl transition bg-white" 
+             data-level="{{ $course->level }}" data-price="{{ $course->price == 0 ? 'free' : 'paid' }}">
+
+            <div class="relative h-48 bg-gray-200">
                 @if($course->image)
-                    <div class="overflow-hidden">
-                        <img src="{{ asset('storage/'.$course->image) }}" 
-                             alt="{{ $course->title }}" 
-                             class="w-full h-48 object-cover transform transition-transform duration-300 hover:scale-105">
-                    </div>
+                    <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->title }}" class="w-full h-full object-cover">
                 @else
-                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" 
-                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+                    <div class="w-full h-full flex items-center justify-center bg-indigo-100">
+                        <i class="fas fa-book text-4xl text-indigo-600"></i>
                     </div>
                 @endif
 
-                <!-- Course Info -->
-                <div class="p-4 flex flex-col flex-grow">
-                    <h3 class="font-bold text-lg mb-2">{{ $course->title }}</h3>
-                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {{ Str::limit($course->description, 100) }}
-                    </p>
+                {{-- Level Badge --}}
+                <span class="absolute top-2 left-2 bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    @if($course->level == 1) Beginner
+                    @elseif($course->level == 2) Intermediate
+                    @else Advanced
+                    @endif
+                </span>
 
-                    <div class="flex justify-between items-center mt-auto">
-                        <span class="text-indigo-600 font-bold">${{ number_format($course->price, 2) }}</span>
-                        <a href="{{ route('courses.show', $course) }}" 
-                           class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                {{-- Already Purchased Badge --}}
+                @if(auth()->check() && auth()->user()->hasPurchased($course))
+                    <span class="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                        <i class="fas fa-check-circle mr-1"></i> Enrolled
+                    </span>
+                @endif
+            </div>
+
+            {{-- Course Content --}}
+            <div class="p-4 flex flex-col justify-between h-56">
+                <div>
+                    <h3 class="font-bold text-xl mb-2 text-gray-800">{{ $course->title }}</h3>
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-3">{{ Str::limit($course->description, 120) }}</p>
+                </div>
+
+                {{-- Price + Buttons --}}
+                <div class="flex justify-between items-center mt-auto gap-2">
+                    <span class="text-indigo-600 font-bold text-lg">${{ number_format($course->price, 2) }}</span>
+                    <div class="flex gap-2">
+                        <a href="{{ route('courses.show', $course) }}" class="bg-gray-800 text-white px-3 py-2 rounded-lg font-medium hover:bg-gray-900 transition">
                             View Details
                         </a>
+                        @if(auth()->check() && auth()->user()->hasPurchased($course))
+                                {{-- Show Access Course button for enrolled users --}}
+                                <a href="{{ route('userdashboard', ['course' => $course->id]) }}" class="bg-green-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-green-700 transition flex items-center">
+                                    <i class="fas fa-check-circle mr-2"></i> Access
+                                </a>
+                            @else
+                                {{-- Show Enroll Now button for non-enrolled users --}}
+                                <form action="{{ route('payment.initiate', $course) }}" method="POST" class="flex-shrink-0">
+                                    @csrf
+                                    <button type="submit" class="bg-indigo-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
+                                        Enroll Now
+                                    </button>
+                                </form>
+                            @endif
                     </div>
                 </div>
             </div>
+        </div>
         @endforeach
     </div>
 
@@ -164,7 +189,7 @@
                 <div class="bg-white p-8 rounded-2xl shadow-lg">
                     <p class="text-gray-600 mb-4">"The financial courses transformed my approach to wealth building!"</p>
                     <div class="flex items-center">
-                        <img class="w-12 h-12 rounded-full" src="https://via.placeholder.com/48" alt="User">
+                       
                         <div class="ml-4">
                             <h4 class="text-gray-800 font-semibold">Emily Davis</h4>
                             <p class="text-gray-500 text-sm">Investor</p>
@@ -174,7 +199,7 @@
                 <div class="bg-white p-8 rounded-2xl shadow-lg">
                     <p class="text-gray-600 mb-4">"Excellent blog posts on investment strategies—highly recommend!"</p>
                     <div class="flex items-center">
-                        <img class="w-12 h-12 rounded-full" src="https://via.placeholder.com/48" alt="User">
+                       
                         <div class="ml-4">
                             <h4 class="text-gray-800 font-semibold">Michael Brown</h4>
                             <p class="text-gray-500 text-sm">Entrepreneur</p>
@@ -184,7 +209,7 @@
                 <div class="bg-white p-8 rounded-2xl shadow-lg">
                     <p class="text-gray-600 mb-4">"Personalized services helped me achieve financial goals faster."</p>
                     <div class="flex items-center">
-                        <img class="w-12 h-12 rounded-full" src="https://via.placeholder.com/48" alt="User">
+                     
                         <div class="ml-4">
                             <h4 class="text-gray-800 font-semibold">Sarah Johnson</h4>
                             <p class="text-gray-500 text-sm">Client</p>

@@ -117,11 +117,10 @@ class Ad extends Model
     /**
      * Scope for admin view — show all ads, regardless of status/date
      */
-  public function scopeForAdmin($query)
-{
-    return $query->with(['user', 'product']) // Eager load relationships
-        ->withoutGlobalScopes(); 
-}
+public function scopeForAdmin($query)
+    {
+        return $query->with(['user']); // Only load user, not product
+    }
 
 
 

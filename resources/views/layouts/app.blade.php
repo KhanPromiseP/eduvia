@@ -13,7 +13,7 @@
             href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
         />
 
-        <script src="https://cdn.tailwindcss.com"></script>
+        {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net" />
@@ -37,29 +37,100 @@
         <div class="min-h-screen bg-gray-100">
 
 
+{{-- Header Ad Placement --}}
+@if(isset($adPlacements['header']) && $adPlacements['header']->isNotEmpty())
+<div class="header-ad-container fixed top-0 left-0 w-full z-40 pointer-events-none width-full">
 
-    {{-- Header Ad Placement --}}
-    @if(isset($adPlacements['header']) && $adPlacements['header']->isNotEmpty())
-    <div class="header-ad-container fixed top-0 left-0 w-full z-40 pointer-events-none width-full">
+    {{-- Toggle Button: placed below nav --}}
+    <button id="header-ad-toggle" 
+            class="absolute top-[64px] right-4 z-50 bg-blue-600 text-white px-3 py-1 rounded-b-md shadow hover:bg-blue-700 transition-colors pointer-events-auto">
+        Ads ▼
+    </button>
 
-        {{-- Toggle Button: placed below nav --}}
-        <button id="header-ad-toggle" 
-                class="absolute top-[64px] right-4 z-50 bg-blue-600 text-white px-3 py-1 rounded-b-md shadow hover:bg-blue-700 transition-colors pointer-events-auto">
-            Ads ▼
-        </button>
-
-        {{-- Ad Panel --}}
-        <div id="header-ad-panel" class="w-full bg-white shadow-md border-b border-gray-200 overflow-hidden transform -translate-y-full transition-transform duration-700 ease-out z-45 pointer-events-auto">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-center">
-                @foreach($adPlacements['header'] as $ad)
-                    <div class="header-ad-wrapper w-full max-w-[728px]">
-                        <x-ad-display :ad="$ad" placement="header" :delay="0" />
-                    </div>
-                @endforeach
-            </div>
+    {{-- Ad Panel --}}
+    <div id="header-ad-panel" class="w-full bg-white shadow-md border-b border-gray-200 overflow-hidden transform -translate-y-full transition-transform duration-700 ease-out z-45 pointer-events-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-center">
+            @foreach($adPlacements['header'] as $ad)
+                <div class="header-ad-wrapper w-full max-w-[728px]">
+                    <x-ad-display :ad="$ad" placement="header" :delay="0" />
+                </div>
+            @endforeach
         </div>
     </div>
-    @endif
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const adPanel = document.getElementById('header-ad-panel');
+    const toggleButton = document.getElementById('header-ad-toggle');
+    
+    // Check if user manually hid the ad
+    const isManuallyHidden = sessionStorage.getItem('headerAdManuallyHidden');
+    
+    // If manually hidden, keep it hidden and stop here
+    if (isManuallyHidden === 'true') {
+        toggleButton.textContent = 'Ads ▼';
+        return;
+    }
+    
+    // Check if we should auto-show (first visit in session)
+    const hasVisited = sessionStorage.getItem('headerAdHasVisited');
+    
+    if (!hasVisited) {
+        // First visit - set flag and show ad after delay
+        sessionStorage.setItem('headerAdHasVisited', 'true');
+        
+        setTimeout(() => {
+            adPanel.classList.remove('-translate-y-full');
+            adPanel.classList.add('translate-y-0');
+            toggleButton.textContent = 'Ads ▲';
+        }, 1000);
+    } else {
+        // Subsequent visits - keep ad visible if not manually hidden
+        adPanel.classList.remove('-translate-y-full');
+        adPanel.classList.add('translate-y-0');
+        toggleButton.textContent = 'Ads ▲';
+    }
+    
+    // Toggle functionality
+    toggleButton.addEventListener('click', function() {
+        if (adPanel.classList.contains('-translate-y-full')) {
+            // Show ad
+            adPanel.classList.remove('-translate-y-full');
+            adPanel.classList.add('translate-y-0');
+            toggleButton.textContent = 'Ads ▲';
+            sessionStorage.removeItem('headerAdManuallyHidden');
+        } else {
+            // Hide ad
+            adPanel.classList.remove('translate-y-0');
+            adPanel.classList.add('-translate-y-full');
+            toggleButton.textContent = 'Ads ▼';
+            sessionStorage.setItem('headerAdManuallyHidden', 'true');
+        }
+    });
+});
+</script>
+
+<style>
+.header-ad-container {
+    height: auto;
+}
+
+#header-ad-panel {
+    will-change: transform;
+}
+
+/* Smooth transition for the ad panel */
+#header-ad-panel {
+    transition: transform 0.7s ease-out;
+}
+
+/* Ensure the toggle button stays visible */
+#header-ad-toggle {
+    transition: all 0.3s ease;
+}
+</style>
+@endif
 
 
 

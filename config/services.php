@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+
+
+'tranzak' => [
+    'app_id' => env('TRANZAK_APP_ID'),
+    'api_key' => env('TRANZAK_API_KEY'),
+    'base_url' => env('TRANZAK_BASE_URL', 'https://sandbox.dsapi.tranzak.me'), // Use sandbox for testing
+    'api_version' => '/xp021/v1',
+    'success_url' => env('TRANZAK_SUCCESS_URL', '/payment/success'),
+    'cancel_url' => env('TRANZAK_CANCEL_URL', '/payment/cancel'),
+    'webhook_url' => env('TRANZAK_WEBHOOK_URL', '/payment/webhook'),
+    'webhook_secret' => env('TRANZAK_WEBHOOK_SECRET'),
+],
+
+
+
 ];

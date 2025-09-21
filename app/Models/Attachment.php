@@ -18,9 +18,8 @@ class Attachment extends Model
         'order'
     ];
 
-public function module()
-{
-    return $this->belongsTo(CourseModule::class, 'module_id');
-}
-
+    public function module()
+    {
+        return $this->belongsTo(CourseModule::class);
+    }
 }

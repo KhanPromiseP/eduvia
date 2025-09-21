@@ -19,7 +19,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Blog Card 1 -->
                 <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Wealth+Tips" alt="Blog Post">
+                  
                     <div class="p-4">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">5 Ways to Build Wealth in 2025</h3>
                         <p class="text-gray-600 mb-4">Discover strategies to grow your finances this year.</p>
@@ -28,7 +28,7 @@
                 </div>
                 <!-- Blog Card 2 -->
                 <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Investment+Guide" alt="Blog Post">
+                  
                     <div class="p-4">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">Beginner's Guide to Smart Investing</h3>
                         <p class="text-gray-600 mb-4">Step-by-step tips for starting your investment journey.</p>
@@ -37,7 +37,7 @@
                 </div>
                 <!-- Blog Card 3 -->
                 <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                    <img class="w-full h-48 object-cover rounded-t-2xl" src="https://via.placeholder.com/400x200?text=Budgeting+Secrets" alt="Blog Post">
+                   
                     <div class="p-4">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">Budgeting Secrets for Financial Freedom</h3>
                         <p class="text-gray-600 mb-4">Learn how to manage your money effectively.</p>

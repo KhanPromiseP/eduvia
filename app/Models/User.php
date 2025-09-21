@@ -43,7 +43,49 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            // REMOVED: 'purchased_at' => 'datetime', // This field is in user_courses table, not users table
         ];
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'user_courses')
+                    ->using(UserCourse::class) // Add this to use the UserCourse model for pivot
+                    ->withPivot('amount_paid', 'purchased_at', 'payment_id')
+                    ->withTimestamps();
+    }
+
+    public function userCourses()
+    {
+        return $this->hasMany(UserCourse::class);
+    }
+
+    public function hasPurchased($course)
+    {
+        if (!$this->id) {
+            return false;
+        }
+        
+        // Handle both course object and course ID
+        $courseId = is_object($course) ? $course->id : $course;
+        
+        // If we already loaded the courses relationship, use it
+        if ($this->relationLoaded('courses')) {
+            return $this->courses->contains('id', $courseId);
+        }
+        
+        // Otherwise, query the database
+        return $this->courses()->where('course_id', $courseId)->exists();
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
     }
 
     public function hasPaid($productId)
@@ -53,39 +95,4 @@ class User extends Authenticatable
                     ->where('status', 'completed')
                     ->exists();
     }
-
-    public function payments()
-    {
-        return $this->hasMany(Payment::class);
-    }
-
-    
-
-
-
-
-    // public function courses()
-    // {
-    //     return $this->belongsToMany(Course::class, 'user_courses')
-    //                 ->withPivot('amount_paid', 'purchased_at')
-    //                 ->withTimestamps();
-    // }
-
-    // public function hasPurchased($courseId)
-    // {
-    //     return $this->courses()->where('course_id', $courseId)->exists();
-    // }
-
-     public function purchasedCourses()
-    {
-        return $this->belongsToMany(Course::class, 'user_courses')
-                    ->withPivot('amount_paid', 'purchased_at')
-                    ->withTimestamps();
-    }
-
-    public function hasPurchased($courseId)
-    {
-        return $this->purchasedCourses()->where('course_id', $courseId)->exists();
-    }
-
 }

@@ -52,13 +52,8 @@
             @break
 
         @case('banner')
-            <div class="w-full h-full">
-                <a href="{{ $link }}" target="_blank" class="block w-full h-full" @click="trackAdClick">
-                    <div class="w-full h-full bg-gray-100 flex items-center justify-center p-4">
-                        <span class="text-lg font-bold">{{ $ad->title }}</span>
-                    </div>
-                </a>
-            </div>
+                       @include('components.ads.video-ad', ['ad' => $ad, 'adId' => $adId])
+
             @break
         
         @case('js')

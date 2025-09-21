@@ -146,16 +146,76 @@
                             </div>
                         </div>
 
-                        <div class="mt-6">
-                            <label for="targeting" class="block text-sm font-medium text-gray-700 mb-2">Targeting JSON</label>
-                            <textarea id="targeting" name="targeting" rows="4" 
-                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                                      placeholder='{"device": "mobile", "hours": [9,10,11], "urls": ["/products"]}'>{{ old('targeting') }}</textarea>
-                            <p class="mt-1 text-xs text-gray-500">
-                                Example: {"device": "mobile","hours":[9,10,11],"urls":["/products"]}
-                            </p>
-                            @error('targeting')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
+                       <div class="mt-6">
+    <label for="targeting" class="block text-sm font-medium text-gray-700 mb-2">
+        Targeting Options
+    </label>
+
+    {{-- Device Selector --}}
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Devices</label>
+        <select id="device" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="all" selected>All Devices</option>
+            <option value="mobile">Mobile</option>
+            <option value="desktop">Desktop</option>
+        </select>
+    </div>
+
+    {{-- Hours Input --}}
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Active Hours (comma separated)</label>
+        <input type="text" id="hours" placeholder="e.g. 9,10,11"
+               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    {{-- URLs Checkboxes --}}
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-600 mb-2">Pages</label>
+        <div class="space-y-2">
+            @php
+                $pages = ['blog', 'services', 'dashboard', 'userdashboard', 'courses', 'contact'];
+            @endphp
+            @foreach($pages as $page)
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" class="url-checkbox" value="/{{ $page }}" checked>
+                    <span>{{ ucfirst($page) }}</span>
+                </label>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- Hidden field that holds the JSON for backend --}}
+    <input type="hidden" name="targeting" id="targeting">
+
+    <script>
+        function updateTargetingJSON() {
+            const device = document.getElementById('device').value;
+            const hours = document.getElementById('hours').value
+                .split(',')
+                .map(h => h.trim())
+                .filter(h => h);
+
+            const urls = Array.from(document.querySelectorAll('.url-checkbox:checked'))
+                .map(cb => cb.value);
+
+            const targeting = {
+                device: device,
+                hours: hours,
+                urls: urls
+            };
+
+            document.getElementById('targeting').value = JSON.stringify(targeting);
+        }
+
+        // Run whenever user changes any field
+        document.querySelectorAll('#device, #hours, .url-checkbox')
+            .forEach(el => el.addEventListener('change', updateTargetingJSON));
+
+        // Initialize JSON on page load
+        updateTargetingJSON();
+    </script>
+</div>
+
                     </div>
                 </div>
 

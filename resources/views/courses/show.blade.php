@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $course->title }} - Course Preview</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
     <script src="https://unpkg.com/docx-preview/dist/docx-preview.js"></script>
 
     <style>
@@ -94,10 +94,10 @@
                                 Access Course
                             </a>
                         @else
-                            <form action="{{ route('purchase.course', $course) }}" method="POST" class="mt-4">
+                            <form action="{{ route('payment.initiate', $course) }}" method="POST" class="mt-4">
                                 @csrf
                                 <button type="submit" class="w-full bg-indigo-600 mb-8 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
-                                    Purchase Course
+                                    Purchase Course - ${{ number_format($course->price, 2) }}
                                 </button>
                             </form>
                         @endif
@@ -303,7 +303,11 @@ function getAttachmentDurationInMinutes($attachment) {
                                 <span class="bg-green-300 text-green-800 text-xs px-2 py-1 rounded">Free Preview</span>
                             @elseif(!$userHasPurchased)
                                 <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"><i class="fas fa-lock mr-1"></i> Locked</span>
+                          
+                             @elseif($userHasPurchased)
+                                <span class="bg-green-400 text-green-800 text-xs px-2 py-1 rounded"> access course</span>
                             @endif
+                            
                         </div>
                     </div>
                     
@@ -402,7 +406,8 @@ function getAttachmentDurationInMinutes($attachment) {
                                             </div>
                                             
                                             <div class="flex items-center">
-                                                @if($module->is_free || $userHasPurchased)
+                                                @if($module->is_free)
+                                                    {{-- Free modules can be accessed directly --}}
                                                     @if(in_array($attachment->file_type, ['mp4', 'mov', 'avi', 'mkv']))
                                                         <button onclick="openVideoModal('{{ asset('storage/' . $attachment->file_path) }}', '{{ $attachment->title }}')" class="text-indigo-600 hover:text-indigo-800 mr-3">
                                                             <i class="fas fa-play-circle text-lg"></i> Play
@@ -412,16 +417,28 @@ function getAttachmentDurationInMinutes($attachment) {
                                                             <i class="fas fa-eye text-lg"></i> View
                                                         </button>
                                                     @endif
+
+                                                @elseif($userHasPurchased)
+                                                    {{-- Purchased, but should only be accessed in dashboard --}}
+                                                    <a href="{{ route('userdashboard', $course->id) }}" 
+                                                    class="text-indigo-600 hover:text-indigo-800 mr-3">
+                                                        <i class="fas fa-sign-in-alt text-lg"></i> Access Course
+                                                    </a>
+
                                                 @else
+                                                    {{-- Locked --}}
                                                     <span class="text-gray-400">
                                                         <i class="fas fa-lock text-lg"></i>
                                                     </span>
                                                 @endif
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
                                 @endforeach
+
+                                
                             </div>
                             @endif
                         </div>
@@ -526,7 +543,7 @@ function getAttachmentDurationInMinutes($attachment) {
             contentTitle.textContent = title;
             
             if (fileType === 'pdf') {
-                container.innerHTML = `<iframe src="${fileSrc}#toolbar=0" class="w-full h-[90vh]" frameborder="0"></iframe>`;
+                container.innerHTML = `<iframe src="${fileSrc}#toolbar=0" class="w-full h-[100vh]" frameborder="0"></iframe>`;
         //    else if (fileType === 'doc' || fileType === 'docx') {
         //         <div id="contentContainer">
         //         <div id="docx-viewer" style="width:100%; height:80vh; border:1px solid #ccc; display:none;"></div>

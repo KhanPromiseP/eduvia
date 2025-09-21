@@ -13,7 +13,7 @@ class UserDashboardController extends Controller
         $user = Auth::user();
         
         // Get purchased courses with ordered modules and attachments
-        $purchasedCourses = $user->purchasedCourses()
+        $purchasedCourses = $user->courses() // Changed from purchasedCourses() to courses()
             ->with(['modules' => function($query) {
                 $query->orderBy('order');
             }, 'modules.attachments'])

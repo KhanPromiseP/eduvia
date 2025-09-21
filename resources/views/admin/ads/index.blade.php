@@ -19,16 +19,7 @@
 
         {{-- Filters --}}
         <form method="GET" action="{{ route('admin.ads.index') }}" class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {{-- Status --}}
-            <div>
-                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                    <option value="">All Statuses</option>
-                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                </select>
-            </div>
-
+         
             {{-- Search by Title --}}
             <div>
                 <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -64,29 +55,6 @@
                 </select>
             </div>
 
-            {{-- Start Date --}}
-            <div>
-                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <input 
-                    type="datetime-local" 
-                    id="start_date"
-                    name="start_date" 
-                    value="{{ request('start_date') }}" 
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                >
-            </div>
-
-            {{-- End Date --}}
-            <div>
-                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <input 
-                    type="datetime-local" 
-                    id="end_date"
-                    name="end_date" 
-                    value="{{ request('end_date') }}" 
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                >
-            </div>
 
             {{-- Weight --}}
             <div>

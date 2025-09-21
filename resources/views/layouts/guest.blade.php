@@ -21,80 +21,15 @@
 
 
 
-{{-- Header Ad Placement --}}
-@if(isset($adPlacements['header']) && $adPlacements['header']->isNotEmpty())
-<div class="header-ad-container fixed top-0 left-0 w-full z-40 pointer-events-none width-full">
 
-    {{-- Toggle Button: placed below nav --}}
-    <button id="header-ad-toggle" 
-            class="absolute top-[64px] right-4 z-50 bg-blue-600 text-white px-3 py-1 rounded-b-md shadow hover:bg-blue-700 transition-colors pointer-events-auto">
-        Ads ▼
-    </button>
-
-    {{-- Ad Panel --}}
-    <div id="header-ad-panel" class="w-full bg-white shadow-md border-b border-gray-200 overflow-hidden transform -translate-y-full transition-transform duration-700 ease-out z-45 pointer-events-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-center">
-            @foreach($adPlacements['header'] as $ad)
-                <div class="header-ad-wrapper w-full max-w-[728px]">
-                    <x-ad-display :ad="$ad" placement="header" :delay="0" />
-                </div>
-            @endforeach
-        </div>
-    </div>
-</div>
-@endif
 
   <!-- Navigation -->
  <div class="sticky top-0 z-50 bg-white">
     <x-guest-nav />
   </div>
 
-<style>
-/* Subtle bounce for ad content */
-@keyframes bounce-slow {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-.header-ad-wrapper .ad-card-container {
-  animation: bounce-slow 3s infinite;
-}
 
-/* Smooth slide down animation */
-.header-ad-slide-down {
-  transform: translateY(0) !important;
-}
-</style>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const toggleBtn = document.getElementById("header-ad-toggle");
-    const adPanel = document.getElementById("header-ad-panel");
-    const navBarHeight = document.querySelector('.sticky').offsetHeight;
-    let isOpen = false;
-
-    // Ensure ad panel starts hidden above nav
-    adPanel.style.transform = `translateY(-${adPanel.offsetHeight}px)`;
-
-    // Slide down automatically on page load
-    setTimeout(() => {
-        adPanel.style.transform = `translateY(${navBarHeight}px)`;
-        isOpen = true;
-        toggleBtn.innerHTML = "Ads ▲";
-    }, 300);
-
-    // Toggle button click
-    toggleBtn.addEventListener("click", () => {
-        if (isOpen) {
-            adPanel.style.transform = `translateY(-${adPanel.offsetHeight}px)`;
-            toggleBtn.innerHTML = "Ads ▼";
-        } else {
-            adPanel.style.transform = `translateY(${navBarHeight}px)`;
-            toggleBtn.innerHTML = "Ads ▲";
-        }
-        isOpen = !isOpen;
-    });
-});
-</script>
 
             <!-- Page Heading -->
             @isset($header)
@@ -105,110 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </header>
             @endisset
 
-            {{-- Main Content with Sidebar Ads --}}
-            <div class="max-w-[1920px] mx-auto relative">
-    {{-- Sidebar Ads --}}
-@if(isset($adPlacements['sidebar']) && $adPlacements['sidebar']->isNotEmpty())
-
-{{-- Left Sidebar (desktop only) --}}
-<div class="hidden xl:block fixed left-0 top-2/3 transform -translate-y-1/2 w-[160px] ml-4 z-30">
-    <div class="sidebar-ads space-y-4">
-        @foreach($adPlacements['sidebar'] as $index => $ad)
-            <div class="sidebar-ad-wrapper relative w-full">
-                <x-ad-display 
-                    :ad="$ad" 
-                    placement="sidebar-left" 
-                    :delay="$index * 1.5 + 1" 
-                />
-                <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
-                    ×
-                </button>
-            </div>
-        @endforeach
-    </div>
-</div>
-
-{{-- Right Sidebar (desktop only) --}}
-<div class="hidden xl:block fixed right-0 top-1/2 transform -translate-y-1/2 w-[160px] mr-4 z-30">
-    <div class="sidebar-ads space-y-4">
-        @foreach($adPlacements['sidebar']->skip(1) as $index => $ad)
-            <div class="sidebar-ad-wrapper relative w-full">
-                <x-ad-display 
-                    :ad="$ad" 
-                    placement="sidebar-right" 
-                    :delay="$index * 1.5 + 1" 
-                />
-                <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
-                    ×
-                </button>
-            </div>
-        @endforeach
-    </div>
-</div>
-
-{{-- Mobile-friendly sidebar (full visible, side) --}}
-<div class="xl:hidden fixed top-2/3 right-0 transform -translate-y-0 z-40 w-[160px] sm:w-[180px]">
-    <div class="sidebar-ads space-y-4">
-        @foreach($adPlacements['sidebar'] as $index => $ad)
-            <div class="sidebar-ad-wrapper relative w-full">
-                <x-ad-display 
-                    :ad="$ad" 
-                    placement="sidebar-mobile" 
-                    :delay="$index * 1.5 + 3" 
-                />
-                <button class="sidebar-close-btn absolute top-1 right-1 bg-red-700 text-white text-lg font-bold px-2 py-1 rounded hover:bg-red-900 hidden">
-                    ×
-                </button>
-            </div>
-        @endforeach
-    </div>
-</div>
-
-@endif
-
-<style>
-/* Subtle bounce for attention */
-@keyframes bounce-slow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-.sidebar-ad-wrapper .ad-card-container {
-    animation: bounce-slow 3s infinite;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-</style>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll('.sidebar-ad-wrapper').forEach(wrapper => {
-        const closeBtn = wrapper.querySelector('.sidebar-close-btn');
-
-        // Show close button 5s after ad appears
-        setTimeout(() => closeBtn.classList.remove('hidden'), 5000);
-
-        // Close action
-        closeBtn.addEventListener('click', () => {
-            wrapper.style.transform = 'translateX(100%)';
-            wrapper.style.opacity = '0';
-            setTimeout(() => wrapper.remove(), 400);
-        });
-    });
-});
-</script>
-
-
-
+          
 
                 {{-- Main Content --}}
                 <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative z-20">
-                    {{-- In-content ads (before main content) --}}
-                    @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->isNotEmpty())
-                        <div class="in-content-ad-top mb-6">
-                            @foreach($adPlacements['in-content'] as $ad)
-                                <x-ad-display :ad="$ad" placement="in-content" :delay="2" />
-                            @endforeach
-                        </div>
-                    @endif
+                   
 
                     <!-- Page Content -->
                     <main class="">
@@ -217,14 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                    
 
-                    {{-- In-content ads (after main content) --}}
-                    @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->count() > 1)
-                        <div class="in-content-ad-bottom mt-6">
-                            @foreach($adPlacements['in-content']->skip(1) as $ad)
-                                <x-ad-display :ad="$ad" placement="in-content" :delay="5" />
-                            @endforeach
-                        </div>
-                    @endif
+                    
                 </main>
             </div>
 
@@ -241,75 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
 </div>
 @endif
   
-{{-- Floating Ads --}}
-@if(isset($adPlacements['floating']) && $adPlacements['floating']->isNotEmpty())
-@foreach($adPlacements['floating'] as $index => $ad)
-<div class="floating-ad fixed z-50" style="bottom:20px; right:20px;">
-    <x-ad-display :ad="$ad" placement="floating" :delay="$index * 2 + 8" />
-</div>
-@endforeach
-@endif
-
-{{-- Popup Ads --}}
-@if(isset($adPlacements['popup']) && $adPlacements['popup']->isNotEmpty())
-@foreach($adPlacements['popup'] as $index => $ad)
-<div class="popup-ad fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden" 
-     id="popup-ad-{{ $index }}">
-    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden relative p-6">
-        <button class="absolute top-2 right-2 text-white bg-red-600 px-2 py-1 rounded z-50 close-popup">
-            ✕
-        </button>
-        <x-ad-display :ad="$ad" placement="popup" :delay="$index * 3 + 5" />
-    </div>
-</div>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const popup = document.getElementById("popup-ad-{{ $index }}");
-        setTimeout(() => popup.classList.remove("hidden"), {{ $index * 3000 + 10000 }}); // delayed show
-        popup.querySelector(".close-popup").addEventListener("click", () => {
-            popup.classList.add("hidden");
-        });
-    });
-</script>
-@endforeach
-@endif
-
-{{-- Interstitial Ads --}}
-@if(isset($adPlacements['interstitial']) && $adPlacements['interstitial']->isNotEmpty())
-@foreach($adPlacements['interstitial'] as $index => $ad)
-<div class="interstitial-ad fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden" 
-     id="interstitial-ad-{{ $index }}">
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden relative p-6">
-        <button class="absolute top-2 right-2 text-white bg-red-600 px-2 py-1 rounded z-50 close-interstitial">
-            ✕
-        </button>
-        <x-ad-display :ad="$ad" placement="interstitial" :delay="$index * 5 + 15000" />
-    </div>
-</div>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const interstitial = document.getElementById("interstitial-ad-{{ $index }}");
-        setTimeout(() => interstitial.classList.remove("hidden"), {{ $index * 5000 + 15000 }});
-        interstitial.querySelector(".close-interstitial").addEventListener("click", () => {
-            interstitial.classList.add("hidden");
-        });
-    });
-</script>
-@endforeach
-@endif
 
 
-            {{-- Interstitial Ads --}}
-            @if(isset($adPlacements['interstitial']) && $adPlacements['interstitial']->isNotEmpty())
-                @foreach($adPlacements['interstitial'] as $index => $ad)
-                    <x-ad-display 
-                        :ad="$ad" 
-                        placement="interstitial" 
-                        :delay="$index * 5 + 15" 
-                    />
-                @endforeach
-            @endif
-        </div>
 
         {{-- Global Ad Scripts --}}
         <script>

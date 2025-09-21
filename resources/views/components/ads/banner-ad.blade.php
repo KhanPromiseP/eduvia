@@ -21,8 +21,8 @@
             <p class="text-gray-900 text-base md:text-lg font-semibold mb-4">${{ number_format($ad->price, 2) }}</p>
         @endif
         <a href="{{ $ad->link ?? '#' }}" target="_blank" rel="noopener noreferrer"
-           class="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors duration-300 ad-clickable">
-            Shop Now
+           class="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors duration-300 ad-clickable"  @click="trackAdClick>
+            Click Here
         </a>
     </div>
 

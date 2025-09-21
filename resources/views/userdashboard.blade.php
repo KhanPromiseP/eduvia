@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learning Dashboard - Secure Platform</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
     <script src="https://unpkg.com/docx-preview@0.1.7/dist/docx-preview.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf_viewer.min.css">
@@ -152,7 +152,7 @@
         </div>
 
         <!-- Main Content Area -->
-        <div class="flex flex-col lg:flex-row gap-8">
+        <div class="flex flex-col lg:flex-row gap-2">
             <!-- Course List Sidebar -->
             <div class="lg:w-1/4 xl:w-1/5">
                 <div class="bg-white rounded-lg shadow-md p-4 mb-6 sticky top-4">
@@ -175,8 +175,10 @@
                                     </div>
                                 @endif
                                 <div class="flex-1 min-w-0">
-                                    <h3 class="font-medium text-gray-800 truncate">{{ $course->title }}</h3>
+                                    <h3 class="font-bold text-gray-800 truncate">{{ $course->title }}</h3>
+
                                     <p class="text-xs text-gray-600">{{ $course->modules->count() }} modules</p>
+                                    
                                 </div>
                             </div>
                         </a>

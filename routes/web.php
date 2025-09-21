@@ -24,6 +24,7 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\SecureContentController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+use App\Http\Controllers\Admin\UserController;
 
 
 
@@ -38,42 +39,6 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-
-// Add these test routes for development
-Route::middleware(['auth'])->group(function () {
-    // Regular purchase route
-    Route::post('/purchase/{course}', [PaymentController::class, 'purchase'])
-         ->name('purchase.course');
-    
-    // Test purchase route (for development only)
-    Route::post('/test-purchase/{course}', [PaymentController::class, 'testPurchase'])
-         ->name('test.purchase.course');
-         
-    // Quick purchase route for testing
-    Route::get('/quick-purchase/{course}', function (Course $course) {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
-        
-        $user = auth()->user();
-        
-        if ($course->isPurchasedBy($user)) {
-            return redirect()->route('userdashboard')
-                             ->with('info', 'You already own this course.');
-        }
-        
-        // Create purchase record
-        \App\Models\UserCourse::create([
-            'user_id' => $user->id,
-            'course_id' => $course->id,
-            'amount_paid' => 0.00, // Free for testing
-            'purchased_at' => now(),
-        ]);
-        
-        return redirect()->route('userdashboard')
-                         ->with('success', 'Test purchase completed! Course added to your dashboard.');
-    })->name('quick.purchase');
-});
 
 
 
@@ -106,12 +71,13 @@ Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', [AdController::class, 'generalAnalytics'])
+        Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard'); 
 
 
     // Route::get('//ads/analytics', [AdController::class, 'generalAnalytics'])->name('admin.ads.analytics');
     Route::resource('ads', AdController::class);
+    Route::resource('users', UserController::class);
     Route::resource('products', ProductController::class);
     Route::resource('email-campaigns', EmailCampaignController::class);
     Route::resource('subscribers', SubscriberController::class);
@@ -188,22 +154,53 @@ Route::get('/courses/{course}', [CourseController::class, 'show'])->name('course
 // Authenticated routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/userdashboard', [UserDashboardController::class, 'index'])->name('userdashboard');
-    Route::post('/purchase/{course}', [PaymentController::class, 'purchase'])->name('purchase.course');
+    // Route::post('/purchase/{course}', [PaymentController::class, 'purchase'])->name('purchase.course');
     Route::get('/learn/{course}', [LearningController::class, 'show'])->name('courses.learn');
+
+
+
+
 });
 
 
 
+// routes/web.php
+Route::middleware(['auth'])->group(function () {
+    // Route::post('/course/{course}/purchase', [PaymentController::class, 'initiatePayment'])
+    //     ->name('purchase.course');
+    Route::post('/payment/initiate/{course}', [PaymentController::class, 'initiatePayment'])->name('payment.initiate');
+    Route::get('/payment/success', [PaymentController::class, 'handleSuccess'])->name('payment.success');
+    Route::get('/payment/cancel', [PaymentController::class, 'handleCancel'])->name('payment.cancel');
 
-Route::middleware(['auth'])->group(function() {
-    // Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+    Route::get('/payment/invoice/{payment}', [PaymentController::class, 'showInvoice'])->name('payment.invoice');
+    Route::get('/payment/invoice/{payment}/download', [PaymentController::class, 'downloadInvoice'])->name('payment.invoice.download');
+  
+});
+
+// Webhook route
+Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])
+    ->name('payment.webhook')
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+
+
+
+
+
+
+
+
+// Route::middleware(['auth'])->group(function() {
+//     // Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
    
 
+//     Route::get('checkout/{product}', [CheckoutController::class, 'show'])->name('checkout');
+//     Route::post('checkout/{product}', [CheckoutController::class, 'pay'])->name('checkout.pay');
+//     Route::get('download/{product}', [ProductController::class, 'download'])->name('products.download');
 
-    Route::get('checkout/{product}', [CheckoutController::class, 'show'])->name('checkout');
-    Route::post('checkout/{product}', [CheckoutController::class, 'pay'])->name('checkout.pay');
-    Route::get('download/{product}', [ProductController::class, 'download'])->name('products.download');
-});
+
+    
+// });
+
 
 
 require __DIR__.'/auth.php';

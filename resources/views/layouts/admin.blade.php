@@ -141,6 +141,10 @@
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.dashboard') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-speedometer2 mr-3 text-indigo-300"></i> Dashboard
                 </a>
+                 <a href="{{ route('admin.users.index') }}" 
+                   class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.users.*') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="bi bi-people mr-3 text-indigo-300"></i> All Users
+                </a>
                 <a href="{{ route('admin.ads.index') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.ads.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-megaphone-fill mr-3 text-indigo-300"></i> Advertisements
@@ -155,19 +159,19 @@
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.email-campaigns.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-envelope-paper-fill mr-3 text-indigo-300"></i> Email Campaigns
                 </a>
-                <a href="{{ route('admin.subscribers.index') }}" 
+                {{-- <a href="{{ route('admin.subscribers.index') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.subscribers.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-people-fill mr-3 text-indigo-300"></i> Subscribers
                     <span class="ml-auto px-2 py-1 text-xs font-bold rounded-full bg-indigo-600/50">+24</span>
-                </a>
+                </a> --}}
                 {{-- <a href="{{ route('admin.analytics.index') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.analytics.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-bar-chart-line-fill mr-3 text-indigo-300"></i> Analytics
                 </a> --}}
-                <a href="{{ route('admin.payments.index') }}" 
+                {{-- <a href="{{ route('admin.payments.index') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.payments.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-credit-card-2-front-fill mr-3 text-indigo-300"></i> Payments
-                </a>
+                </a> --}}
             </nav>
 
             <!-- Logout -->
