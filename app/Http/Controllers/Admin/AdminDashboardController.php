@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers;
+use App\Http\Controllers\Controller;
 use App\Models\Ad;
 use App\Models\AdView;
 use App\Models\AdClick;
@@ -11,7 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class AdninDashboardController extends Controller
+class AdminDashboardController extends Controller
+
 {
     public function index(Request $request)
     {

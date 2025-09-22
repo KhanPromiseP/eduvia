@@ -150,6 +150,13 @@
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.ads.*') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-megaphone-fill mr-3 text-indigo-300"></i> Advertisements
                 </a>
+
+                <a href="{{ route('admin.categories.index') }}" 
+                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.categories.*') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="bi bi-tags mr-3 text-indigo-300"></i> Categories
+                    <span class="ml-auto px-2 py-1 text-xs font-bold rounded-full bg-indigo-600/50">New</span>
+                </a>
+
                
                 <a href="{{ route('admin.courses.index') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.courses.*') ? 'bg-indigo-700 active' : '' }}">

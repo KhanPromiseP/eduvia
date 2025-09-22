@@ -19,14 +19,46 @@
             </div>
 
             <div>
-                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($) *</label>
+                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                <select name="category_id" id="category_id" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required>
+                    <option value="">Select Category</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('category_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" id="is_premium" name="is_premium" value="1" {{ old('is_premium') ? 'checked' : '' }}
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <span class="text-sm text-gray-900">Premium Course (Paid)</span>
+                </label>
+                @error('is_premium')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
                 <input type="number" name="price" id="price" value="{{ old('price') }}" step="0.01" min="0"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                       required>
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500
+                            disabled:placeholder-red-300"
+                    disabled placeholder="Free course">
                 @error('price')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
+
         </div>
 
         <div class="mb-6">
@@ -39,6 +71,7 @@
             @enderror
         </div>
 
+        <!-- Level and Duration -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label for="level" class="block text-sm font-medium text-gray-700 mb-1">Level *</label>
@@ -65,7 +98,7 @@
             </div>
         </div>
 
-        <div class="mb-6">
+         <div class="mb-6">
             <label for="objectives" class="block text-sm font-medium text-gray-700 mb-1">Learning Objectives</label>
             <textarea name="objectives" id="objectives" rows="3"
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ old('objectives') }}</textarea>
@@ -109,9 +142,6 @@
                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                 <label for="is_published" class="ml-2 block text-sm text-gray-900">Publish this course</label>
             </div>
-            @error('is_published')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
         </div>
 
         <div class="flex justify-end space-x-3">
@@ -126,4 +156,27 @@
         </div>
     </form>
 </div>
+
+<script>
+    const premiumCheckbox = document.getElementById('is_premium');
+    const priceInput = document.getElementById('price');
+
+    function togglePriceField() {
+        if (premiumCheckbox.checked) {
+            priceInput.disabled = false;
+            priceInput.required = true;
+            priceInput.placeholder = "Enter price in USD";
+        } else {
+            priceInput.disabled = true;
+            priceInput.required = false;
+            priceInput.value = "";
+            priceInput.placeholder = "Free course";
+        }
+    }
+
+    premiumCheckbox.addEventListener('change', togglePriceField);
+
+    // Initialize on page load
+    togglePriceField();
+</script>
 @endsection

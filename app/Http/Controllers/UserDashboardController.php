@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Course;
+use App\Models\UserProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,32 +11,32 @@ class UserDashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
-        // Get purchased courses with ordered modules and attachments
-        $purchasedCourses = $user->courses() // Changed from purchasedCourses() to courses()
-            ->with(['modules' => function($query) {
-                $query->orderBy('order');
-            }, 'modules.attachments'])
-            ->orderBy('purchased_at', 'desc')
+
+        // ✅ Eager-load courses, modules, attachments, and user progress
+        $purchasedCourses = $user->courses()
+            ->with([
+                'modules.attachments',
+                'userProgress' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }
+            ])
             ->get();
 
         $selectedCourse = null;
         $selectedModule = null;
-        $moduleIndex = null;
+        $moduleIndex    = 0;
 
-        // Check if a specific course is selected
-        if ($request->has('course')) {
+        if ($request->filled('course')) {
             $selectedCourse = $purchasedCourses->firstWhere('id', $request->course);
-            
-            // Check if a specific module is selected
-            if ($request->has('module') && $selectedCourse) {
+
+            if ($selectedCourse && $request->filled('module')) {
                 $selectedModule = $selectedCourse->modules->firstWhere('id', $request->module);
-                
-                // Find the index of the selected module for navigation
+
                 if ($selectedModule) {
-                    $moduleIndex = $selectedCourse->modules->search(function($module) use ($selectedModule) {
-                        return $module->id === $selectedModule->id;
-                    });
+                    $this->trackModuleProgress($selectedModule->id);
+
+                    $moduleIndex = $selectedCourse->modules
+                        ->search(fn($module) => $module->id === $selectedModule->id);
                 }
             }
         }
@@ -47,5 +47,39 @@ class UserDashboardController extends Controller
             'selectedModule',
             'moduleIndex'
         ));
+    }
+
+    private function trackModuleProgress($moduleId)
+    {
+        $user = Auth::user();
+
+        UserProgress::firstOrCreate(
+            [
+                'user_id'   => $user->id,
+                'module_id' => $moduleId,
+            ],
+            [
+                'viewed_at' => now(),
+            ]
+        );
+    }
+
+    public function markAsComplete($moduleId)
+    {
+        $user = Auth::user();
+
+        UserProgress::updateOrCreate(
+            [
+                'user_id'   => $user->id,
+                'module_id' => $moduleId,
+            ],
+            [
+                'completed'    => true,
+                'completed_at' => now(),
+                'viewed_at'    => now(),
+            ]
+        );
+
+        return response()->json(['success' => true]);
     }
 }

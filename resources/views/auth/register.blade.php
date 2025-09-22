@@ -65,6 +65,36 @@
                     <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1 text-sm text-red-500" />
                 </div>
 
+                <!-- Preferred Language -->
+                <div>
+                    <x-input-label for="preferred_language" :value="__('Preferred Language')" class="text-gray-700 font-medium" />
+                    <select id="preferred_language" name="preferred_language" class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="en" {{ old('preferred_language', 'en') == 'en' ? 'selected' : '' }}>English</option>
+                        <option value="es" {{ old('preferred_language') == 'es' ? 'selected' : '' }}>Spanish</option>
+                        <option value="fr" {{ old('preferred_language') == 'fr' ? 'selected' : '' }}>French</option>
+                        <option value="de" {{ old('preferred_language') == 'de' ? 'selected' : '' }}>German</option>
+                        <option value="it" {{ old('preferred_language') == 'it' ? 'selected' : '' }}>Italian</option>
+                        <option value="pt" {{ old('preferred_language') == 'pt' ? 'selected' : '' }}>Portuguese</option>
+                    </select>
+                    <x-input-error :messages="$errors->get('preferred_language')" class="mt-1 text-sm text-red-500" />
+                </div>
+
+                <!-- Learning Interests -->
+                <div>
+                    <x-input-label for="learning_interests" :value="__('Learning Interests (Optional)')" class="text-gray-700 font-medium" />
+                    <div class="mt-2 space-y-2 max-h-40 overflow-y-auto">
+                        @foreach($categories as $category)
+                            <label class="flex items-center">
+                                <input type="checkbox" name="learning_interests[]" value="{{ $category->id }}" 
+                                    {{ in_array($category->id, old('learning_interests', [])) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">{{ $category->name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <x-input-error :messages="$errors->get('learning_interests')" class="mt-1 text-sm text-red-500" />
+                </div>
+
                 <!-- Submit -->
                 <div>
                     <x-primary-button class="w-full justify-center py-3 rounded-lg text-base">

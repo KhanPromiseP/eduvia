@@ -31,4 +31,20 @@ class CourseModule extends Model
         return $this->hasMany(Attachment::class, 'module_id')->orderBy('order');
     }
 
+    public function progress()
+    {
+        return $this->hasMany(UserProgress::class, 'module_id');
+    }
+    
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'course_module_user', 'module_id', 'user_id')
+                    ->withPivot('completed', 'viewed_at')
+                    ->withTimestamps();
+    }
+
+
+
+
 }

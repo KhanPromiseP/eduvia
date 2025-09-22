@@ -177,27 +177,43 @@
                             <!-- Add Attachment Form (Hidden by default) -->
                             <div id="attachment-form-{{ $module->id }}" class="hidden mb-4 p-3 bg-gray-50 rounded">
                                 <form action="{{ route('admin.courses.attachments.store', [$course, $module]) }}" 
-                                      method="POST" enctype="multipart/form-data">
+                                    method="POST" enctype="multipart/form-data">
                                     @csrf
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
                                             <input type="text" name="title" required
-                                                   class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Order *</label>
                                             <input type="number" name="order" min="0" required
-                                                   class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                                         </div>
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">File *</label>
-                                        <input type="file" name="file" required
-                                               class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                               accept=".pdf,.doc,.docx,.mp4,.mov,.avi,.jpg,.jpeg,.png,.zip">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                        <textarea name="description" rows="2"
+                                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                placeholder="Optional description for this attachment"></textarea>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
+                                        <input type="file" name="file"
+                                            class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                            accept=".pdf,.doc,.docx,.mp4,.mov,.avi,.jpg,.jpeg,.png,.zip">
+                                        <p class="text-xs text-gray-500 mt-1">OR enter a video URL below</p>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Video URL</label>
+                                        <input type="url" name="video_url"
+                                            class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                            placeholder="https://youtube.com/... or https://vimeo.com/...">
+                                        <p class="text-xs text-gray-500 mt-1">Supports YouTube and Vimeo links</p>
                                     </div>
                                     
                                     <div class="flex justify-end space-x-2">
@@ -216,34 +232,119 @@
                             @if($module->attachments->count() > 0)
                             <div class="space-y-2">
                                 @foreach($module->attachments->sortBy('order') as $attachment)
-                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
                                     <div class="flex items-center">
                                         @if($attachment->file_type === 'pdf')
                                             <i class="fas fa-file-pdf text-red-600 mr-2"></i>
                                         @elseif(in_array($attachment->file_type, ['mp4', 'mov', 'avi']))
                                             <i class="fas fa-video text-purple-600 mr-2"></i>
+                                        @elseif($attachment->file_type === 'external_video')
+                                            <i class="fab fa-youtube text-red-600 mr-2"></i>
                                         @elseif(in_array($attachment->file_type, ['jpg', 'jpeg', 'png']))
                                             <i class="fas fa-image text-green-600 mr-2"></i>
                                         @else
                                             <i class="fas fa-file text-gray-600 mr-2"></i>
                                         @endif
-                                        <span class="text-sm">{{ $attachment->title }}</span>
-                                        <span class="text-xs text-gray-500 ml-2">({{ strtoupper($attachment->file_type) }})</span>
+                                        
+                                        <div>
+                                            <span class="text-sm font-medium">{{ $attachment->title }}</span>
+                                            @if($attachment->description)
+                                                <p class="text-xs text-gray-500 mt-1">{{ Str::limit($attachment->description, 50) }}</p>
+                                            @endif
+                                            <span class="text-xs text-gray-500">
+                                                @if($attachment->file_type === 'external_video')
+                                                    External Video
+                                                @else
+                                                    {{ strtoupper($attachment->file_type) }}
+                                                    @if($attachment->file_size)
+                                                        ({{ number_format($attachment->file_size / 1024, 1) }} KB)
+                                                    @endif
+                                                @endif
+                                            </span>
+                                        </div>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <a href="{{ asset('storage/' . $attachment->file_path) }}" 
-                                           target="_blank" class="text-blue-600 hover:text-blue-900 text-sm">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
+                                        @if($attachment->file_type === 'external_video')
+                                            <a href="{{ $attachment->video_url }}" 
+                                            target="_blank" class="text-blue-600 hover:text-blue-900 text-sm" title="View Video">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        @else
+                                            <a href="{{ asset('storage/' . $attachment->file_path) }}" 
+                                            target="_blank" class="text-blue-600 hover:text-blue-900 text-sm" title="View File">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        @endif
+                                        
+                                        <!-- Edit Attachment Button -->
+                                        <button onclick="toggleAttachmentEdit({{ $attachment->id }})" 
+                                                class="text-yellow-600 hover:text-yellow-900 text-sm" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        
                                         <form action="{{ route('admin.courses.attachments.destroy', [$course, $module, $attachment]) }}" 
-                                              method="POST" onsubmit="return confirm('Delete this attachment?')">
+                                            method="POST" onsubmit="return confirm('Delete this attachment?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900 text-sm">
+                                            <button type="submit" class="text-red-600 hover:text-red-900 text-sm" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
                                     </div>
+                                </div>
+
+                                <!-- Edit Attachment Form (Hidden by default) -->
+                                <div id="edit-attachment-{{ $attachment->id }}" class="hidden p-3 bg-gray-100 rounded mt-2">
+                                    <form action="{{ route('admin.courses.attachments.update', [$course, $module, $attachment]) }}" 
+                                        method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        @method('PUT')
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                                                <input type="text" name="title" value="{{ $attachment->title }}" required
+                                                    class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Order *</label>
+                                                <input type="number" name="order" value="{{ $attachment->order }}" min="0" required
+                                                    class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                            <textarea name="description" rows="2"
+                                                    class="w-full px-2 py-1 border border-gray-300 rounded text-sm">{{ $attachment->description }}</textarea>
+                                        </div>
+                                        
+                                        @if($attachment->file_type !== 'external_video')
+                                        <div class="mb-3">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Replace File</label>
+                                            <input type="file" name="file"
+                                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                accept=".pdf,.doc,.docx,.mp4,.mov,.avi,.jpg,.jpeg,.png,.zip">
+                                        </div>
+                                        @endif
+                                        
+                                        <div class="mb-3">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Video URL</label>
+                                            <input type="url" name="video_url" value="{{ $attachment->video_url }}"
+                                                class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                placeholder="https://youtube.com/...">
+                                        </div>
+                                        
+                                        <div class="flex justify-end space-x-2">
+                                            <button type="button" onclick="toggleAttachmentEdit({{ $attachment->id }})" 
+                                                    class="text-sm bg-gray-300 text-gray-700 px-2 py-1 rounded">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" class="text-sm bg-indigo-600 text-white px-2 py-1 rounded">
+                                                Update
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                                 @endforeach
                             </div>
@@ -268,6 +369,11 @@
 <script>
 function toggleModuleEdit(moduleId) {
     const editForm = document.getElementById('edit-module-' + moduleId);
+    editForm.classList.toggle('hidden');
+}
+
+function toggleAttachmentEdit(attachmentId) {
+    const editForm = document.getElementById('edit-attachment-' + attachmentId);
     editForm.classList.toggle('hidden');
 }
 

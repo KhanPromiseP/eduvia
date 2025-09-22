@@ -9,22 +9,35 @@ class Course extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'title',
-        'description',
-        'objectives',
-        'target_audience',
-        'requirements',
-        'price',
-        'image',
-        'duration',
-        'level',
-        'is_published'
+     protected $fillable = [
+        'category_id', 'title', 'description', 'objectives', 'target_audience', 
+        'requirements', 'price', 'image', 'duration', 'level', 'is_published', 'is_premium'
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    // Scopes for filtering
+    public function scopePremium($query)
+    {
+        return $query->where('is_premium', true);
+    }
+
+    public function scopeLatest($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true);
+    }
 
     public function modules()
     {
@@ -58,6 +71,56 @@ class Course extends Model
         
         return $this->users()->where('user_id', $user->id)->exists();
     }
+
+
+    public function userProgress()
+    {
+        return $this->hasManyThrough(
+            UserProgress::class,
+            CourseModule::class,
+            'course_id',   // FK on course_modules
+            'module_id',   // FK on user_progress
+            'id',          // PK on courses
+            'id'           // PK on course_modules
+        );
+    }
+
+    public function completedModulesForUser($userId)
+    {
+        return $this->userProgress()
+            ->where('user_id', $userId)
+            ->where('completed', true)
+            ->count();
+    }
+
+    // public function progressPercentage($userId)
+    // {
+    //     return cache()->remember(
+    //         "course_{$this->id}_progress_{$userId}",
+    //         now()->addMinutes(5),
+    //         function () use ($userId) {
+    //             $totalModules = $this->modules->count();
+    //             if ($totalModules === 0) return 0;
+
+    //             $completedModules = $this->completedModulesForUser($userId);
+    //             return round(($completedModules / $totalModules) * 100, 2);
+    //         }
+    //     );
+    // }
+
+public function progressPercentage($userId)
+{
+    $totalModules = $this->modules()->count();
+    if ($totalModules === 0) return 0;
+
+    $completedModules = $this->modules()
+        ->whereHas('progress', function ($q) use ($userId) {
+            $q->where('user_id', $userId)->where('completed', true);
+        })
+        ->count();
+
+    return round(($completedModules / $totalModules) * 100);
+}
 
 
 

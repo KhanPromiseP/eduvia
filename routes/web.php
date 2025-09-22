@@ -25,6 +25,8 @@ use App\Http\Controllers\SecureContentController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
 
 
@@ -36,6 +38,47 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/download-content/{attachment}', [SecureContentController::class, 'download'])
     //      ->name('download.content');
 });
+
+
+
+
+
+
+
+
+
+
+// for non-premium courses (free courses) quick purchase route
+Route::middleware(['auth'])->group(function () {
+    // Quick purchase route for free courses (non premium courses) 
+    Route::get('/quick-purchase/{course}', function (Course $course) {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user = auth()->user();
+
+        if ($course->isPurchasedBy($user)) {
+            return redirect()->route('userdashboard')
+                             ->with('info', "Hi {$user->name}, you already own this course!");
+        }
+
+        // Create purchase record
+        \App\Models\UserCourse::create([
+            'user_id' => $user->id,
+            'course_id' => $course->id,
+            'amount_paid' => 0.00, // Free course
+            'purchased_at' => now(),
+        ]);
+
+        return redirect()->route('userdashboard')
+                         ->with('success', "Great choice {$user->name}! 🎉 You’ve successfully enrolled in {$course->title}.");
+    })->name('quick.purchase');
+});
+
+
+
+
 
 
 
@@ -64,6 +107,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile/additional', [ProfileController::class, 'updateAdditional'])
+    ->name('profile.additional.update');
+    Route::post('/profile/detect-location', [ProfileController::class, 'detectLocation'])
+    ->name('profile.detect-location');
 
 
 });
@@ -80,6 +127,7 @@ Route::middleware(['auth', 'admin'])
     Route::resource('ads', AdController::class);
     Route::resource('users', UserController::class);
     Route::resource('products', ProductController::class);
+    Route::resource('categories', CategoryController::class);
     Route::resource('email-campaigns', EmailCampaignController::class);
     Route::resource('subscribers', SubscriberController::class);
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
@@ -105,6 +153,8 @@ Route::middleware(['auth', 'admin'])
          ->name('courses.attachments.store');
     Route::delete('courses/{course}/modules/{module}/attachments/{attachment}', [\App\Http\Controllers\Admin\CourseController::class, 'destroyAttachment'])
          ->name('courses.attachments.destroy');
+    Route::put('courses/{course}/modules/{module}/attachments/{attachment}', [\App\Http\Controllers\Admin\CourseController::class, 'updateAttachment'])
+        ->name('courses.attachments.update');
     
     // Toggle publish status
     Route::post('courses/{course}/toggle-publish', [\App\Http\Controllers\Admin\CourseController::class, 'togglePublish'])

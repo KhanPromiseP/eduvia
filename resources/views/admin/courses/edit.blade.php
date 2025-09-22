@@ -74,15 +74,40 @@
             </div>
 
             <div>
-                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($) *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Premium Course</label>
+                <div class="flex items-center space-x-3">
+                    <input type="checkbox" id="is_premium" name="is_premium" value="1" 
+                           {{ old('is_premium', $course->price > 0 ? 1 : 0) ? 'checked' : '' }}
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="is_premium" class="text-gray-900 text-sm">Make this a premium course</label>
+                </div>
+
                 <input type="number" name="price" id="price" value="{{ old('price', $course->price) }}" 
                        step="0.01" min="0"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                       required>
+                       class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                       placeholder="Free Course / No Price">
                 @error('price')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
+        </div>
+
+        <!-- Category -->
+        <div class="mb-6">
+            <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+            <select name="category_id" id="category_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required>
+                <option value="">Select Category</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ old('category_id', $course->category_id) == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+            @error('category_id')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
         </div>
 
         <!-- Description -->
@@ -107,6 +132,8 @@
                     <option value="1" {{ old('level', $course->level) == 1 ? 'selected' : '' }}>Beginner</option>
                     <option value="2" {{ old('level', $course->level) == 2 ? 'selected' : '' }}>Intermediate</option>
                     <option value="3" {{ old('level', $course->level) == 3 ? 'selected' : '' }}>Advanced</option>
+                    <option value="4" {{ old('level', $course->level) == 4 ? 'selected' : '' }}>Expart</option>
+                    <option value="5" {{ old('level', $course->level) == 5 ? 'selected' : '' }}>Beginner to Advanced</option>
                 </select>
                 @error('level')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -119,7 +146,7 @@
                        min="0"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 @error('duration')
-                    <p class="mt-1 text-sm textred-600">{{ $message }}</p>
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
         </div>
@@ -259,6 +286,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Trigger initial resize
         textarea.dispatchEvent(new Event('input'));
     });
+});
+
+// Premium / Free toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const premiumCheckbox = document.getElementById('is_premium');
+    const priceInput = document.getElementById('price');
+
+    function togglePrice() {
+        if (premiumCheckbox.checked) {
+            priceInput.disabled = false;
+            priceInput.required = true;
+            priceInput.placeholder = '';
+        } else {
+            priceInput.disabled = true;
+            priceInput.required = false;
+            priceInput.placeholder = 'Free Course / No Price';
+            priceInput.value = '';
+        }
+    }
+
+    premiumCheckbox.addEventListener('change', togglePrice);
+    togglePrice(); // initial load
 });
 </script>
 

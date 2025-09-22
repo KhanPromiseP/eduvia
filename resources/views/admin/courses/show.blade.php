@@ -42,6 +42,7 @@
                 </div>
                 
                 <!-- Quick Stats -->
+          
                 <div class="mt-4 space-y-2">
                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span class="text-gray-600">Status:</span>
@@ -49,38 +50,59 @@
                             {{ $course->is_published ? 'Published' : 'Draft' }}
                         </span>
                     </div>
+
+                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span class="text-gray-600">Category:</span>
+                        <span class="font-semibold text-indigo-700">{{ $course->category->name ?? 'Uncategorized' }}</span>
+                    </div>
+
                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span class="text-gray-600">Price:</span>
-                        <span class="font-semibold">${{ number_format($course->price, 2) }}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold">${{ number_format($course->price, 2) }}</span>
+                            @if($course->price > 0)
+                                <span class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-semibold">Premium</span>
+                            @else
+                                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 font-semibold">Free</span>
+                            @endif
+                        </div>
                     </div>
+
                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span class="text-gray-600">Level:</span>
                         <span class="font-semibold">
                             @if($course->level == 1) Beginner
                             @elseif($course->level == 2) Intermediate
-                            @else Advanced
+                            @elseif($course->level == 3) Advanced
+                            @elseif($course->level == 4) Expart
+                            @else Beginner to Advanced
                             @endif
                         </span>
                     </div>
+
                     @if($course->duration)
                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span class="text-gray-600">Duration:</span>
                         <span class="font-semibold">{{ $course->duration }} hours</span>
                     </div>
                     @endif
+
                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span class="text-gray-600">Modules:</span>
                         <span class="font-semibold">{{ $course->modules->count() }}</span>
                     </div>
+
                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span class="text-gray-600">Created:</span>
                         <span class="font-semibold">{{ $course->created_at->format('M d, Y') }}</span>
                     </div>
-                     <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+
+                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <span class="text-gray-600">Updated:</span>
                         <span class="font-semibold">{{ $course->updated_at->format('M d, Y') }}</span>
                     </div>
                 </div>
+
             </div>
             
             <!-- Course Details -->

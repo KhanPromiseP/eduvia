@@ -22,102 +22,56 @@
             <option value="1">Beginner</option>
             <option value="2">Intermediate</option>
             <option value="3">Advanced</option>
+            <option value="4">Expart</option>
+            <option value="5">Beginner to Advanced</option>
         </select>
 
         <select id="priceFilter" class="border rounded px-3 py-2 text-gray-700">
             <option value="">All Prices</option>
-            <option value="free">Free</option>
-            <option value="paid">Paid</option>
+            {{-- <option value="free">Free</option> --}}
+            <option value="paid">Free</option>
+            <option value="premium">premium</option>
         </select>
+        
+        <select id="categoryFilter" class="border rounded px-3 py-2 text-gray-700">
+            <option value="">All Categories</option>
+            @foreach($categories as $category)
+                <option value="{{ $category->id }}">{{ $category->name }}</option>
+            @endforeach
+        </select>
+
 
         <input type="text" id="searchInput" placeholder="Search courses..." class="border rounded px-3 py-2 text-gray-700 flex-grow">
     </div>
 
     {{-- Courses Grid --}}
-    <div id="coursesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @foreach($courses as $course)
-            <div class="course-card border rounded-lg overflow-hidden hover:shadow-xl transition bg-white" 
-                data-level="{{ $course->level }}" data-price="{{ $course->price == 0 ? 'free' : 'paid' }}">
-
-                <div class="relative h-48 bg-gray-200">
-                    @if($course->image)
-                        <img src="{{ asset('storage/' . $course->image) }}" alt="{{ $course->title }}" class="w-full h-full object-cover">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center bg-indigo-100">
-                            <i class="fas fa-book text-4xl text-indigo-600"></i>
-                        </div>
-                    @endif
-
-                    {{-- Level Badge --}}
-                    <span class="absolute top-2 left-2 bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                        @if($course->level == 1) Beginner
-                        @elseif($course->level == 2) Intermediate
-                        @else Advanced
-                        @endif
-                    </span>
-
-                    {{-- Already Purchased Badge --}}
-                    @if(auth()->check() && auth()->user()->hasPurchased($course))
-                        <span class="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                            <i class="fas fa-check-circle mr-1"></i> Enrolled
-                        </span>
-                    @endif
-                </div>
-
-                {{-- Course Content --}}
-                <div class="p-4 flex flex-col justify-between h-56">
-                    <div>
-                        <h3 class="font-bold text-xl mb-2 text-gray-800">{{ $course->title }}</h3>
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-3">{{ Str::limit($course->description, 120) }}</p>
-                    </div>
-
-                    {{-- Price + Buttons --}}
-                    <div class="flex justify-between items-center mt-auto gap-2">
-                        <span class="text-indigo-600 font-bold text-lg">${{ number_format($course->price, 2) }}</span>
-                        <div class="flex gap-2">
-                            <a href="{{ route('courses.show', $course) }}" class="bg-gray-800 text-white px-3 py-2 rounded-lg font-medium hover:bg-gray-900 transition">
-                                View Details
-                            </a>
-                            
-                            @if(auth()->check() && auth()->user()->hasPurchased($course))
-                                {{-- Show Access Course button for enrolled users --}}
-                                <a href="{{ route('userdashboard', ['course' => $course->id]) }}" class="bg-green-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-green-700 transition flex items-center">
-                                    <i class="fas fa-check-circle mr-2"></i> Access
-                                </a>
-                            @else
-                                {{-- Show Enroll Now button for non-enrolled users --}}
-                                <form action="{{ route('payment.initiate', $course) }}" method="POST" class="flex-shrink-0">
-                                    @csrf
-                                    <button type="submit" class="bg-indigo-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
-                                        Enroll Now
-                                    </button>
-                                </form>
-                            @endif
-
-                            
-                        </div>
-                    </div>
-                </div>
-            </div>
+     {{-- Courses Grid --}}
+        <div id="coursesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($courses as $course)
+                @include('components.course-card', ['course' => $course])
             @endforeach
-    </div>
+        </div>
+
 </div>
 
 <script>
 function filterCourses() {
     const levelFilter = document.querySelector('#levelFilter').value;
     const priceFilter = document.querySelector('#priceFilter').value;
+    const categoryFilter = document.querySelector('#categoryFilter').value;
     const searchQuery = document.querySelector('#searchInput').value.toLowerCase();
 
     document.querySelectorAll('#coursesGrid .course-card').forEach(card => {
         const title = card.querySelector('h3').textContent.toLowerCase();
         const level = card.dataset.level;
         const price = card.dataset.price;
+        const category = card.dataset.category;
 
         let visible = true;
 
         if (levelFilter && levelFilter !== level) visible = false;
         if (priceFilter && priceFilter !== price) visible = false;
+        if (categoryFilter && categoryFilter !== category) visible = false;
         if (searchQuery && !title.includes(searchQuery)) visible = false;
 
         card.style.display = visible ? 'block' : 'none';
@@ -127,6 +81,8 @@ function filterCourses() {
 // Event listeners
 document.querySelector('#levelFilter').addEventListener('change', filterCourses);
 document.querySelector('#priceFilter').addEventListener('change', filterCourses);
+document.querySelector('#categoryFilter').addEventListener('change', filterCourses);
 document.querySelector('#searchInput').addEventListener('keyup', filterCourses);
+
 </script>
 @endsection

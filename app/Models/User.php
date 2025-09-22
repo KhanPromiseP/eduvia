@@ -21,7 +21,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'country',
+        'city',
+        'preferred_language',
     ];
+
+    
 
     /**
      * The attributes that should be hidden for serialization.
@@ -43,7 +48,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            // REMOVED: 'purchased_at' => 'datetime', // This field is in user_courses table, not users table
         ];
     }
 
@@ -52,10 +56,16 @@ class User extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
+    public function progress()
+    {
+        return $this->hasMany(UserProgress::class);
+    }
+
+
     public function courses()
     {
         return $this->belongsToMany(Course::class, 'user_courses')
-                    ->using(UserCourse::class) // Add this to use the UserCourse model for pivot
+                    ->using(UserCourse::class)
                     ->withPivot('amount_paid', 'purchased_at', 'payment_id')
                     ->withTimestamps();
     }
@@ -65,21 +75,23 @@ class User extends Authenticatable
         return $this->hasMany(UserCourse::class);
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
     public function hasPurchased($course)
     {
         if (!$this->id) {
             return false;
         }
         
-        // Handle both course object and course ID
         $courseId = is_object($course) ? $course->id : $course;
         
-        // If we already loaded the courses relationship, use it
         if ($this->relationLoaded('courses')) {
             return $this->courses->contains('id', $courseId);
         }
         
-        // Otherwise, query the database
         return $this->courses()->where('course_id', $courseId)->exists();
     }
 
@@ -87,6 +99,7 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+  
 
     public function hasPaid($productId)
     {
@@ -95,4 +108,13 @@ class User extends Authenticatable
                     ->where('status', 'completed')
                     ->exists();
     }
+
+    public function modules()
+    {
+        return $this->belongsToMany(CourseModule::class, 'course_module_user', 'user_id', 'module_id')
+                    ->withPivot('completed', 'viewed_at')
+                    ->withTimestamps();
+    }
+
+
 }

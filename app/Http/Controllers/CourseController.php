@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
+use App\Models\Category;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -18,8 +19,10 @@ class CourseController extends Controller
         if (Auth::check()) {
             $purchasedCourseIds = Auth::user()->courses()->pluck('course_id')->toArray();
         }
+
+        $categories = Category::all(); // Fetch all categories
         
-        return view('courses.index', compact('courses', 'purchasedCourseIds'));
+        return view('courses.index', compact('courses', 'purchasedCourseIds', 'categories'));
         
         // return view('courses.index', compact('courses'));
     }
@@ -33,6 +36,8 @@ class CourseController extends Controller
         $course->load(['modules' => function($query) {
             $query->orderBy('order');
         }, 'modules.attachments']);
+
+        
         
         $userHasPurchased = auth()->check() ? $course->isPurchasedBy(auth()->user()) : false;
         
