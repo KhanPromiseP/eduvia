@@ -1,8 +1,5 @@
-<div class="mb-6">
+<div class="mb-2">
 
-    <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-            <i class="fas fa-book mr-2"></i> Eduvia Learning Space
-    </h3>
     <nav class="flex" aria-label="Breadcrumb">
         <ol class="flex items-center space-x-2 text-sm">
             <li>

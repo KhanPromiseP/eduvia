@@ -11,23 +11,21 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run(): void
+   public function run(): void
     {
-        // User::factory(10)->create();
+        // Create regular users first
+        User::factory(10)->create();
 
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
-        //admin user seeder
+        // Then create admin user (will be user #11)
         $this->call([
+            RoleSeeder::class, 
             AdminUserSeeder::class,
-            AdsTableSeeder::class,
-            CourseSeeder::class,
-
         ]);
 
-
+        // Then create other data
+        $this->call([
+            CourseSeeder::class,
+            AdsTableSeeder::class,
+        ]);
     }
 }

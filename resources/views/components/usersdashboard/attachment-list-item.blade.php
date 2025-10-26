@@ -48,9 +48,74 @@
         </div>
     </div>
     
-    <!-- Action Button -->
-    <button onclick="openResourceViewer('{{ $attachment->id }}', '{{ $attachment->file_type }}', '{{ $attachment->title }}', '{{ $attachment->isExternalVideo() ? $attachment->video_url : asset('storage/' . $attachment->file_path) }}', '{{ $attachment->isExternalVideo() ? 'external_video' : 'file' }}')" 
-            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center text-sm">
-        <i class="fas fa-eye mr-2"></i> View
+    <!-- Action Buttons -->
+    <div class="flex items-center space-x-2">
+                <!-- In both attachment-card.blade.php and attachment-list-item.blade.php -->
+@if($attachment->is_secure && $attachment->file_type === 'secure_video')
+    <button data-attachment-action="view-secure-video"
+            data-attachment-id="{{ $attachment->id }}"
+            data-title="{{ $attachment->title }}"
+            class="...">
+        <i class="fas fa-shield-alt mr-2"></i> View Secure Video
     </button>
+@elseif($attachment->isExternalVideo())
+    <button data-attachment-action="external-video"
+            data-video-url="{{ $attachment->video_url }}"
+            data-title="{{ $attachment->title }}"
+            class="...">
+        <i class="fab fa-youtube mr-2"></i> Watch Video
+    </button>
+@else
+    <button data-attachment-action="view"
+            data-attachment-id="{{ $attachment->id }}"
+            data-file-type="{{ $attachment->file_type }}"
+            data-title="{{ $attachment->title }}"
+            class="...">
+        <i class="fas fa-eye mr-2"></i> View Resource
+    </button>
+@endif
+        
+        @if($attachment->allow_download && !$attachment->is_secure)
+            <button data-attachment-action="download"
+                    data-attachment-id="{{ $attachment->id }}"
+                    data-title="{{ $attachment->title }}"
+                    class="...">
+                <i class="fas fa-download"></i>
+            </button>
+        @endif
+    </div>
 </div>
+
+<!-- Backward Compatibility Script -->
+<script>
+// Backward compatibility for existing onclick handlers
+function openAttachmentInDashboard(attachmentId, fileType, title, fileUrl, resourceType, description) {
+    // Convert to new system based on resource type
+    let action = 'view';
+    if (resourceType === 'external_video') {
+        action = 'external-video';
+    } else if (fileType === 'secure_video') {
+        action = 'view-secure-video';
+    }
+    
+    // Trigger the new attachment handling system
+    const button = document.createElement('button');
+    button.setAttribute('data-attachment-action', action);
+    button.setAttribute('data-attachment-id', attachmentId);
+    button.setAttribute('data-file-type', fileType);
+    button.setAttribute('data-title', title);
+    if (resourceType === 'external_video') {
+        button.setAttribute('data-video-url', fileUrl);
+    }
+    
+    // Simulate click on the new system
+    document.dispatchEvent(new CustomEvent('attachment-click', {
+        detail: {
+            target: button
+        }
+    }));
+}
+
+// Make function globally available
+window.openAttachmentInDashboard = openAttachmentInDashboard;
+</script>

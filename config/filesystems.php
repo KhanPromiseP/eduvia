@@ -47,17 +47,45 @@ return [
             'report' => false,
         ],
 
-        's3' => [
+        'r2' => [ // You can rename this to 'storj' if you prefer
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION'),
+            'region' => 'us-east-1', // Storj requires this specific region
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
-            'report' => false,
+            'use_path_style_endpoint' => true,
+            'throw' => true,
+            
+            // Remove visibility for Storj compatibility
+            // 'visibility' => 'private', // COMMENT OUT OR REMOVE THIS LINE
+            
+            // Storj-specific options
+            'options' => [
+                // Storj doesn't support ServerSideEncryption with customer keys
+                // 'ServerSideEncryption' => 'AES256', // REMOVE THIS
+                'CacheControl' => 'private, max-age=3600',
+            ],
+        ],
+
+        'secure_videos' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'auto'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'throw' => true,
+            'visibility' => 'private', 
+            
+            // Special options for videos
+            'options' => [
+                'ServerSideEncryption' => 'AES256',
+                'CacheControl' => 'private, max-age=3600',
+            ],
         ],
 
     ],

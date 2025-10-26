@@ -1,0 +1,17 @@
+[90m= [39m[34;4mApp\Models\Instructor[39;24m {#6677
+    [34mid[39m: [35m1[39m,
+    [34muser_id[39m: [35m11[39m,
+    [34mheadline[39m: "[32mprogrammer[39m",
+    [34mbio[39m: "[32msetupTimeTracking setupTimeTracking setupTimeTracking setupTimeTracking setupTimeTracking setupTimeTracking setupTimeTracking[39m",
+    [34mlanguages[39m: "[32m["English","German"][39m",
+    [34mskills[39m: "[32m["Laravel","Node.js","PHP","MongoDB"][39m",
+    [34mrating[39m: "[32m0.00[39m",
+    [34mtotal_students[39m: [35m0[39m,
+    [34mtotal_reviews[39m: [35m0[39m,
+    [34mis_verified[39m: [35m1[39m,
+    [34msuspended_at[39m: [36mnull[39m,
+    [34msuspension_reason[39m: [36mnull[39m,
+    [34mcreated_at[39m: "[32m2025-10-12 00:12:33[39m",
+    [34mupdated_at[39m: "[32m2025-10-12 07:53:48[39m",
+  }
+

@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use App\Models\Course;
 use App\Models\Ad;
+
 use Illuminate\Support\Carbon;
 
 class AppServiceProvider extends ServiceProvider
@@ -16,6 +18,10 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+
+    protected $policies = [
+    Course::class => CoursePolicy::class,
+    ];
 
     /**
      * Bootstrap any application services.

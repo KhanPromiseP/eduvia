@@ -41,6 +41,8 @@ class UserCourse extends Pivot
         return $this->belongsTo(Payment::class);
     }
 
+
+
     /**
      * Create user course enrollment from payment
      */
@@ -62,5 +64,27 @@ class UserCourse extends Pivot
             'amount_paid' => $payment->amount,
             'purchased_at' => now()
         ]);
+    }
+
+    // Relationship with UserProgress to track course progress
+    public function progress()
+    {
+        return $this->hasOne(UserProgress::class, 'user_id', 'user_id')
+                    ->whereHas('module', function($query) {
+                        $query->where('course_id', $this->course_id);
+                    });
+    }
+
+    // Alternative approach - if you want to track progress differently
+    public function userProgress()
+    {
+        return $this->hasManyThrough(
+            UserProgress::class,
+            CourseModule::class,
+            'course_id', // Foreign key on CourseModule table
+            'module_id', // Foreign key on UserProgress table
+            'course_id', // Local key on UserCourse table
+            'id' // Local key on CourseModule table
+        );
     }
 }

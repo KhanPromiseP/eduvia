@@ -45,14 +45,96 @@
                     Size unknown
                 @endif
             </p>
+            
+            <!-- Security Badge for Secure Videos -->
+            @if($attachment->is_secure && $attachment->file_type === 'secure_video')
+                <div class="flex items-center mt-2 space-x-2">
+                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded flex items-center">
+                        <i class="fas fa-shield-alt mr-1"></i> Secure
+                    </span>
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded flex items-center">
+                        <i class="fas fa-lock mr-1"></i> Encrypted
+                    </span>
+                </div>
+            @endif
         </div>
     </div>
     
-    <!-- Action Button -->
-    <div class="mt-4">
-        <button onclick="openResourceViewer('{{ $attachment->id }}', '{{ $attachment->file_type }}', '{{ $attachment->title }}', '{{ $attachment->isExternalVideo() ? $attachment->video_url : asset('storage/' . $attachment->file_path) }}', '{{ $attachment->isExternalVideo() ? 'external_video' : 'file' }}')" 
-                class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center group-hover:bg-indigo-700">
-            <i class="fas fa-eye mr-2"></i> View Resource
-        </button>
+    <!-- Action Buttons -->
+    <div class="mt-4 space-y-2">
+        <!-- In both attachment-card.blade.php and attachment-list-item.blade.php -->
+@if($attachment->is_secure && $attachment->file_type === 'secure_video')
+    <button data-attachment-action="view-secure-video"
+            data-attachment-id="{{ $attachment->id }}"
+            data-title="{{ $attachment->title }}"
+            class="...">
+        <i class="fas fa-shield-alt mr-2"></i> View Secure Video
+    </button>
+@elseif($attachment->isExternalVideo())
+    <button data-attachment-action="external-video"
+            data-video-url="{{ $attachment->video_url }}"
+            data-title="{{ $attachment->title }}"
+            class="...">
+        <i class="fab fa-youtube mr-2"></i> Watch Video
+    </button>
+@else
+    <button data-attachment-action="view"
+            data-attachment-id="{{ $attachment->id }}"
+            data-file-type="{{ $attachment->file_type }}"
+            data-title="{{ $attachment->title }}"
+            class="...">
+        <i class="fas fa-eye mr-2"></i> View Resource
+    </button>
+@endif
+        
+        @if($attachment->allow_download && !$attachment->is_secure)
+            <button data-attachment-action="download"
+                    data-attachment-id="{{ $attachment->id }}"
+                    data-title="{{ $attachment->title }}"
+                    class="...">
+                <i class="fas fa-download"></i>
+            </button>
+        @endif
     </div>
 </div>
+
+<!-- Backward Compatibility Script -->
+<script>
+// These functions will still work for backward compatibility
+function openSecureVideo(attachmentId, videoId, title, description) {
+    // Use the new unified system
+    const event = new CustomEvent('attachment-action', {
+        detail: {
+            action: 'view-secure-video',
+            attachmentId: attachmentId,
+            title: title
+        }
+    });
+    document.dispatchEvent(event);
+}
+
+function openAttachmentInDashboard(attachmentId, fileType, title, fileUrl, resourceType, description) {
+    // Convert to new system based on resource type
+    let action = 'view';
+    if (resourceType === 'external_video') {
+        action = 'external-video';
+    } else if (fileType === 'secure_video') {
+        action = 'view-secure-video';
+    }
+    
+    const event = new CustomEvent('attachment-action', {
+        detail: {
+            action: action,
+            attachmentId: attachmentId,
+            fileType: fileType,
+            title: title,
+            fileUrl: fileUrl
+        }
+    });
+    document.dispatchEvent(event);
+}
+
+// Make functions globally available
+window.openSecureVideo = openSecureVideo;
+window.openAttachmentInDashboard = openAttachmentInDashboard;
+</script>

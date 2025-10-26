@@ -88,198 +88,372 @@
     </div>
     <!-- END OF ADDED SECTION -->
 
-     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Ads Analytics Dashboard</h1>
-    
-    <!-- Date Range Filter -->
-    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Date Range</h3>
-        </div>
-        <div class="px-4 py-5 sm:p-6">
-            <form method="GET" action="{{ route('admin.dashboard') }}">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                               id="start_date" name="start_date" value="{{ $startDate }}">
-                    </div>
-                    <div>
-                        <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                               id="end_date" name="end_date" value="{{ $endDate }}">
-                    </div>
-                    <div>
-                        <label for="date_range" class="block text-sm font-medium text-gray-700 mb-1">Quick Range</label>
-                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                                id="date_range" name="date_range">
-                            @foreach($dateRanges as $value => $label)
-                                <option value="{{ $value }}" {{ request('date_range') == $value ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" class="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            Apply Filter
-                        </button>
-                    
 
-
-                   
-                        <a href="{{ route('admin.ads.index') }}" 
-                        class="ml-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <i class="bi bi-plus-circle mr-2"></i> New Ad
-                        </a>
+    {{-- In your admin dashboard --}}
+@if(auth()->user()->hasRole('admin'))
+<!-- Instructor Applications Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <!-- Pending Applications -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-yellow-500">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600"></i>
                     </div>
                 </div>
-            </form>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Pending Applications</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\InstructorApplication::where('status', 'pending')->count() }}</dd>
+                        <dt class="text-xs text-gray-500 mt-1">Need review</dt>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <a href="{{ route('admin.instructors.applications') }}" class="text-sm font-medium text-yellow-600 hover:text-yellow-500">
+                Review applications
+                <i class="fas fa-arrow-right ml-1"></i>
+            </a>
         </div>
     </div>
-    
-    <!-- Overview Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <!-- Total Views Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-blue-500">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-eye text-blue-600"></i>
-                        </div>
+
+    <!-- Approved Instructors -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chalkboard-teacher text-green-600"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Views</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ number_format($analytics['overview']['total_views']) }}</dd>
-                            <dt class="text-xs text-gray-500 mt-1">
-                                @if($analytics['overview']['views_change'] > 0)
-                                    <span class="text-green-600"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['views_change'] }}%</span>
-                                @elseif($analytics['overview']['views_change'] < 0)
-                                    <span class="text-red-600"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['views_change']) }}%</span>
-                                @else
-                                    <span class="text-gray-500">No change</span>
-                                @endif
-                                from previous period
-                            </dt>
-                        </dl>
-                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Active Instructors</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\Instructor::where('is_verified', true)->count() }}</dd>
+                        <dt class="text-xs text-gray-500 mt-1">Teaching on platform</dt>
+                    </dl>
                 </div>
             </div>
         </div>
-        
-        <!-- Total Clicks Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-mouse-pointer text-green-600"></i>
-                        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <a href="{{ route('admin.instructors.index') }}" class="text-sm font-medium text-green-600 hover:text-green-500">
+                View all instructors
+                <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Total Students/Learners -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-blue-500">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-blue-600"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Total Clicks</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ number_format($analytics['overview']['total_clicks']) }}</dd>
-                            <dt class="text-xs text-gray-500 mt-1">
-                                @if($analytics['overview']['clicks_change'] > 0)
-                                    <span class="text-green-600"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['clicks_change'] }}%</span>
-                                @elseif($analytics['overview']['clicks_change'] < 0)
-                                    <span class="text-red-600"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['clicks_change']) }}%</span>
-                                @else
-                                    <span class="text-gray-500">No change</span>
-                                @endif
-                                from previous period
-                            </dt>
-                        </dl>
-                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Total Students</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\User::has('courses')->count() }}</dd>
+                        <dt class="text-xs text-gray-500 mt-1">Enrolled in courses</dt>
+                    </dl>
                 </div>
             </div>
         </div>
-        
-        <!-- CTR Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-cyan-500">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-percent text-cyan-600"></i>
-                        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <a href="{{ route('admin.users.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                View all students
+                <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Users Not Enrolled -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-gray-500">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-users text-gray-600"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">CTR</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ $analytics['overview']['ctr'] }}%</dd>
-                            <dt class="text-xs text-gray-500 mt-1">Click-through rate</dt>
-                        </dl>
-                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Users Not Enrolled</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ \App\Models\User::doesntHave('courses')->count() }}</dd>
+                        <dt class="text-xs text-gray-500 mt-1">No courses yet</dt>
+                    </dl>
                 </div>
             </div>
         </div>
-        
-        <!-- Avg. Time Spent Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-yellow-500">
-            <div class="p-5">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-clock text-yellow-600"></i>
-                        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <a href="{{ route('admin.users.index') }}" class="text-sm font-medium text-gray-600 hover:text-gray-500">
+                View all users
+                <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+
+
+
+    <!-- Enrollment Rate -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-purple-500">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chart-line text-purple-600"></i>
                     </div>
-                    <div class="ml-5 w-0 flex-1">
-                        <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Avg. Time Spent</dt>
-                            <dd class="text-lg font-semibold text-gray-900">{{ $analytics['overview']['avg_time_spent'] }}s</dd>
-                            <dt class="text-xs text-gray-500 mt-1">Per view</dt>
-                        </dl>
-                    </div>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Enrollment Rate</dt>
+                        <dd class="text-lg font-semibold text-gray-900">
+                            @php
+                                $totalUsers = \App\Models\User::count();
+                                $enrolledUsers = \App\Models\User::has('courses')->count();
+                                $enrollmentRate = $totalUsers > 0 ? round(($enrolledUsers / $totalUsers) * 100) : 0;
+                            @endphp
+                            {{ $enrollmentRate }}%
+                        </dd>
+                        <dt class="text-xs text-gray-500 mt-1">Of users are enrolled</dt>
+                    </dl>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Performance Trends Chart -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div class="lg:col-span-2">
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Performance Trends</h3>
-                </div>
-                <div class="p-4 sm:p-6">
-                    <div class="chart-container" style="position: relative; height:300px;">
-                        <canvas id="performanceChart"></canvas>
+
+    <!-- Average Courses Per Student -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-pink-500">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-book-open text-pink-600"></i>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="lg:col-span-1">
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Device Breakdown</h3>
-                </div>
-                <div class="p-4 sm:p-6">
-                    <div class="chart-container" style="position: relative; height:250px;">
-                        <canvas id="deviceChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center text-sm text-gray-600">
-                        <div class="flex flex-wrap justify-center gap-3">
-                            @foreach($analytics['device_breakdown'] as $device => $data)
-                                <span class="inline-flex items-center">
-                                    <span class="w-3 h-3 rounded-full 
-                                        @if($device == 'Desktop') bg-blue-500
-                                        @elseif($device == 'Mobile') bg-green-500
-                                        @else bg-cyan-500
-                                        @endif mr-1"></span>
-                                    {{ $device }} ({{ $data['percentage'] }}%)
-                                </span>
-                            @endforeach
-                        </div>
-                    </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">Avg Courses/Student</dt>
+                        <dd class="text-lg font-semibold text-gray-900">
+                            @php
+                                $totalEnrollments = \App\Models\UserCourse::count();
+                                $enrolledUsers = \App\Models\User::has('courses')->count();
+                                $avgCourses = $enrolledUsers > 0 ? round($totalEnrollments / $enrolledUsers, 1) : 0;
+                            @endphp
+                            {{ $avgCourses }}
+                        </dd>
+                        <dt class="text-xs text-gray-500 mt-1">Courses per enrolled user</dt>
+                    </dl>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@endif
+
+
+@if(auth()->user()->hasRole('admin'))
+{{-- or can use @if(auth()->user()->is_admin)  and not @if(auth()->user()->role === 'admin') since I am using spatie and not a role column --}} 
+   
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Ads Analytics Dashboard</h1>
+        
+        <!-- Date Range Filter -->
+        <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Date Range</h3>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <form method="GET" action="{{ route('admin.dashboard') }}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                            <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                                id="start_date" name="start_date" value="{{ $startDate }}">
+                        </div>
+                        <div>
+                            <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                            <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                                id="end_date" name="end_date" value="{{ $endDate }}">
+                        </div>
+                        <div>
+                            <label for="date_range" class="block text-sm font-medium text-gray-700 mb-1">Quick Range</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                                    id="date_range" name="date_range">
+                                @foreach($dateRanges as $value => $label)
+                                    <option value="{{ $value }}" {{ request('date_range') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                Apply Filter
+                            </button>
+                        
+
+
+                    
+                            <a href="{{ route('admin.ads.index') }}" 
+                            class="ml-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <i class="bi bi-plus-circle mr-2"></i> New Ad
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Overview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Total Views Card -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-blue-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-eye text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Views</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ number_format($analytics['overview']['total_views']) }}</dd>
+                                <dt class="text-xs text-gray-500 mt-1">
+                                    @if($analytics['overview']['views_change'] > 0)
+                                        <span class="text-green-600"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['views_change'] }}%</span>
+                                    @elseif($analytics['overview']['views_change'] < 0)
+                                        <span class="text-red-600"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['views_change']) }}%</span>
+                                    @else
+                                        <span class="text-gray-500">No change</span>
+                                    @endif
+                                    from previous period
+                                </dt>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Total Clicks Card -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-green-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-mouse-pointer text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Clicks</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ number_format($analytics['overview']['total_clicks']) }}</dd>
+                                <dt class="text-xs text-gray-500 mt-1">
+                                    @if($analytics['overview']['clicks_change'] > 0)
+                                        <span class="text-green-600"><i class="fas fa-arrow-up"></i> {{ $analytics['overview']['clicks_change'] }}%</span>
+                                    @elseif($analytics['overview']['clicks_change'] < 0)
+                                        <span class="text-red-600"><i class="fas fa-arrow-down"></i> {{ abs($analytics['overview']['clicks_change']) }}%</span>
+                                    @else
+                                        <span class="text-gray-500">No change</span>
+                                    @endif
+                                    from previous period
+                                </dt>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CTR Card -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-cyan-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-percent text-cyan-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">CTR</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ $analytics['overview']['ctr'] }}%</dd>
+                                <dt class="text-xs text-gray-500 mt-1">Click-through rate</dt>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Avg. Time Spent Card -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-yellow-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Avg. Time Spent</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ $analytics['overview']['avg_time_spent'] }}s</dd>
+                                <dt class="text-xs text-gray-500 mt-1">Per view</dt>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Trends Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Performance Trends</h3>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="chart-container" style="position: relative; height:300px;">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Device Breakdown</h3>
+                    </div>
+                    <div class="p-4 sm:p-6">
+                        <div class="chart-container" style="position: relative; height:250px;">
+                            <canvas id="deviceChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center text-sm text-gray-600">
+                            <div class="flex flex-wrap justify-center gap-3">
+                                @foreach($analytics['device_breakdown'] as $device => $data)
+                                    <span class="inline-flex items-center">
+                                        <span class="w-3 h-3 rounded-full 
+                                            @if($device == 'Desktop') bg-blue-500
+                                            @elseif($device == 'Mobile') bg-green-500
+                                            @else bg-cyan-500
+                                            @endif mr-1"></span>
+                                        {{ $device }} ({{ $data['percentage'] }}%)
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 @endsection
+
+
 
 @push('styles')
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">

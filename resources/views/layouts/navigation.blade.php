@@ -1,6 +1,14 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100 relative z-50">
+    @php
+        // Get instructor data if user is an instructor
+        $instructor = null;
+        if (Auth::check() && Auth::user()->hasRole('instructor')) {
+            $instructor = \App\Models\Instructor::where('user_id', Auth::id())->first();
+        }
+    @endphp
+
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
             <!-- Logo -->
             <div class="flex items-center space-x-3">
@@ -21,19 +29,31 @@
                 <x-nav-link :href="route('service.index')" :active="request()->routeIs('service.*')">Services</x-nav-link>
 
                 @auth
-                <x-nav-link :href="route('userdashboard')" :active="request()->routeIs('userdashboard')">MyDashboard</x-nav-link>
+                    @if(Auth::user()->hasRole('instructor'))
+                        <x-nav-link :href="route('instructor.analytics')" :active="request()->routeIs('instructor.dashboard')">Instructor Dashboard</x-nav-link>
+                    @endif
+                    @if(Auth::user()->courses()->count() > 0)
+                        <x-nav-link :href="route('userdashboard')" :active="request()->routeIs('userdashboard')">
+                            My StudyRoom
+                        </x-nav-link>
+                    @endif
+
+                    @if(!Auth::user()->hasRole('instructor'))
+                        <x-nav-link :href="route('instructor.welcome')" :active="request()->routeIs('instructor.welcome')">
+                            Teach on Eduvia
+                        </x-nav-link>
+                    @endif
                 @endauth
-                
 
                 @auth
                 <!-- User Profile / Dropdown only for desktop (authenticated users) -->
                 <x-dropdown align="right" class="ml-4">
                     <x-slot name="trigger">
                         <button class="flex items-center space-x-2 focus:outline-none">
-                            @if(Auth::user()->profile_photo_path)
-                                <img src="{{ asset('storage/' . Auth::user()->profile_photo_path) }}" 
-                                     alt="{{ Auth::user()->name }}" 
-                                     class="h-10 w-10 rounded-full object-cover border border-gray-300">
+                            @if(Auth::user()->profile_path)
+                                <img src="{{ asset('storage/' . Auth::user()->profile_path) }}" 
+                                    alt="{{ Auth::user()->name }}" 
+                                    class="h-10 w-10 rounded-full object-cover border border-gray-300">
                             @else
                                 <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold border border-gray-300">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
@@ -48,11 +68,25 @@
                             <div class="text-sm text-gray-500">{{ Auth::user()->email }}</div>
                         </div>
 
-                        <x-dropdown-link :href="route('userdashboard')">MyDashboard</x-dropdown-link>
-                        <x-dropdown-link :href="route('profile.edit')">Profile</x-dropdown-link>
-                        @if(Auth::user()->is_admin)
-                            <x-dropdown-link :href="route('admin.dashboard')">Admin Dashboard</x-dropdown-link>
+                        <!-- Dashboard links based on role -->
+                        @if(Auth::user()->hasRole('admin'))
+                            <x-responsive-nav-link :href="route('admin.dashboard')">Admin Dashboard</x-responsive-nav-link>
                         @endif
+                        @if(Auth::user()->hasRole('instructor'))
+                            <x-responsive-nav-link :href="route('instructor.analytics')">Instructor Dashboard</x-responsive-nav-link>
+                        @endif
+                        @if(!Auth::user()->hasRole('instructor'))
+                            <x-responsive-nav-link :href="route('instructor.welcome')">Teach on Eduvia</x-responsive-nav-link>
+                        @endif
+                        @if(Auth::user()->courses()->count() > 0)
+                            <x-responsive-nav-link :href="route('userdashboard')">My StudyRoom</x-responsive-nav-link>
+                        @endif
+
+                        @if(Auth::user()->hasRole('instructor') && $instructor)
+                            <x-responsive-nav-link :href="route('instructor.profile', $instructor->user_id)">Public Profile</x-responsive-nav-link>
+                        @endif
+
+                        <x-dropdown-link :href="route('profile.edit')">Edit Profile</x-dropdown-link>
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -100,7 +134,6 @@
     </div>
 
     <div x-show="open" x-cloak class="sm:hidden">
-
     @auth
     <!-- Off-Canvas Mobile Menu (only for authenticated users) -->
     <div x-show="open" 
@@ -124,8 +157,8 @@
             <!-- User Profile Info -->
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center space-x-3">
-                    @if(Auth::user()->profile_photo_path)
-                        <img src="{{ asset('storage/' . Auth::user()->profile_photo_path) }}" 
+                    @if(Auth::user()->profile_path)
+                        <img src="{{ asset('storage/' . Auth::user()->profile_path) }}" 
                              alt="{{ Auth::user()->name }}" 
                              class="h-10 w-10 rounded-full object-cover border border-gray-300">
                     @else
@@ -149,11 +182,27 @@
                 <x-responsive-nav-link :href="route('service.index')" :active="request()->routeIs('service.*')">Services</x-responsive-nav-link>
 
                 <!-- Profile Links (replaces desktop dropdown on mobile) -->
-                <x-responsive-nav-link :href="route('profile.edit')">Profile</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('userdashboard')">MyDashboard</x-responsive-nav-link>
-
-                @if(Auth::user()->is_admin)
+                <x-responsive-nav-link :href="route('profile.edit')">Edit Profile</x-responsive-nav-link>
+                
+                <!-- Dashboard links based on role for mobile -->
+                @if(Auth::user()->hasRole('admin'))
                     <x-responsive-nav-link :href="route('admin.dashboard')">Admin Dashboard</x-responsive-nav-link>
+                @endif
+                
+                @if(Auth::user()->hasRole('instructor') && $instructor)
+                    <x-responsive-nav-link :href="route('instructor.profile', $instructor->user_id)">Public Profile</x-responsive-nav-link>
+                @endif
+                
+                @if(Auth::user()->hasRole('instructor'))
+                    <x-responsive-nav-link :href="route('instructor.dashboard')">Instructor Dashboard</x-responsive-nav-link>
+                @endif
+                
+                @if(!Auth::user()->hasRole('instructor'))
+                    <x-responsive-nav-link :href="route('instructor.welcome')">Teach on Eduvia</x-responsive-nav-link>
+                @endif
+                
+                @if(Auth::user()->courses()->count() > 0)
+                    <x-responsive-nav-link :href="route('userdashboard')">My StudyRoom</x-responsive-nav-link>
                 @endif
 
                 <!-- Logout -->
@@ -167,6 +216,5 @@
         </div>
     </div>
     @endauth
-
     </div>
 </nav>

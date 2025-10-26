@@ -43,18 +43,24 @@
           
 
                 {{-- Main Content --}}
-                <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative z-20">
+                {{-- <main class="max-w-9xl mx-auto py-6 sm:px-6 lg:px-8 relative z-20">
                    
 
                     <!-- Page Content -->
                     <main class="">
                         {{ $slot }}
                     </main>
+                                     
+                </main> --}}
 
-                   
-
-                    
+                {{-- Main Content --}}
+                <main class="max-w-6xl mx-auto py-3 sm:px-3 lg:px-4 relative z-20">
+                    <!-- Page Content -->
+                    <main class="">
+                        {{ $slot }}
+                    </main>
                 </main>
+
             </div>
 
           {{-- Footer Ads --}}

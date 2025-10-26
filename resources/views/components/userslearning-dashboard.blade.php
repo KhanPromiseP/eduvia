@@ -9,7 +9,7 @@
     <!-- Main Content Area -->
     <div class="flex flex-col lg:flex-row gap-2">
 
-        @include('components.usersdashboard.margin-tools')
+        {{-- @include('components.usersdashboard.margin-tools') --}}
         {{-- @include('components.margin-dock') --}}
 
         <!-- Course List Sidebar -->

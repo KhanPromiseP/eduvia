@@ -95,9 +95,6 @@ return [
     |
     */
 
-    'locale' => 'en',
-
-
     'cipher' => 'AES-256-CBC',
 
     'key' => env('APP_KEY'),
@@ -125,5 +122,30 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Video Streaming Configuration
+    |--------------------------------------------------------------------------
+    */
+    'video_encryption_key' => env('VIDEO_ENCRYPTION_KEY', ''),
+    'streaming_secret_key' => env('STREAMING_SECRET_KEY', ''),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Offline Learning Configuration
+    |--------------------------------------------------------------------------
+    */
+    'max_offline_devices' => env('MAX_OFFLINE_DEVICES', 3),
+    'offline_expiry_days' => env('OFFLINE_EXPIRY_DAYS', 30),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Video Upload Configuration
+    |--------------------------------------------------------------------------
+    */
+    'max_video_size' => env('MAX_VIDEO_SIZE', 500), // in MB
+    'allowed_video_types' => env('ALLOWED_VIDEO_TYPES', 'mp4,mov,avi,mkv,webm'),
+    'default_video_quality' => env('DEFAULT_VIDEO_QUALITY', '720p'),
 
 ];

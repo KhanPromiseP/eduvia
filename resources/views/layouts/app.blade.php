@@ -13,7 +13,14 @@
             href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
         />
 
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://unpkg.com/docx-preview/dist/docx-preview.js"></script>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
         {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
+
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net" />
@@ -21,6 +28,10 @@
             href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap"
             rel="stylesheet"
         />
+
+        {{-- for lazy loading images --}}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js" async></script>
+
 
         <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
 
@@ -294,7 +305,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 {{-- Main Content --}}
-                <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative z-20">
+                {{-- <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative z-20"> --}}
+                <main class="max-w-9xl mx-auto lg:px-8 relative z-20">
                     {{-- In-content ads (before main content) --}}
                     @if(isset($adPlacements['in-content']) && $adPlacements['in-content']->isNotEmpty())
                         <div class="in-content-ad-top mb-6">
@@ -744,7 +756,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </footer>
 
 
-
-        
     </body>
 </html>

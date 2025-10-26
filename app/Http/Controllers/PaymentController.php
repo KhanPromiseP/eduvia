@@ -15,17 +15,23 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class PaymentController extends Controller
 {
     private function getTranzakToken()
-    {
-        // Check if we have a valid token in cache
-        $token = Cache::get('tranzak_auth_token');
-        
-        if ($token) {
-            return $token;
-        }
-        
-        // Generate new token
-        $apiUrl = config('services.tranzak.base_url') . '/auth/token';
-        
+{
+    // Check if we have a valid token in cache
+    $token = Cache::get('tranzak_auth_token');
+    
+    if ($token) {
+        return $token;
+    }
+    
+    // Generate new token
+    $apiUrl = config('services.tranzak.base_url') . '/auth/token';
+    
+    Log::info('Attempting Tranzak authentication', [
+        'url' => $apiUrl,
+        'app_id' => config('services.tranzak.app_id'),
+    ]);
+
+    try {
         $response = Http::timeout(30)
             ->withHeaders([
                 'Content-Type' => 'application/json',
@@ -33,7 +39,12 @@ class PaymentController extends Controller
                 'appId' => config('services.tranzak.app_id'),
                 'appKey' => config('services.tranzak.api_key'),
             ]);
-        
+
+        Log::info('Tranzak auth response', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+
         if ($response->successful()) {
             $responseData = $response->json();
             
@@ -44,17 +55,28 @@ class PaymentController extends Controller
                 // Cache the token for 90% of its validity period
                 Cache::put('tranzak_auth_token', $token, $expiresIn * 0.9);
                 
+                Log::info('Tranzak token obtained successfully');
                 return $token;
+            } else {
+                Log::error('Tranzak authentication failed in response', [
+                    'error_code' => $responseData['errorCode'] ?? 'unknown',
+                    'error_msg' => $responseData['errorMsg'] ?? 'Unknown error',
+                    'success' => $responseData['success'] ?? false,
+                ]);
             }
+        } else {
+            Log::error('Tranzak authentication HTTP error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
         }
         
-        Log::error('Failed to get Tranzak token', [
-            'response' => $response->json(),
-            'status' => $response->status()
-        ]);
-        
-        throw new \Exception('Failed to authenticate with Tranzak API');
+    } catch (\Exception $e) {
+        Log::error('Tranzak authentication exception: ' . $e->getMessage());
     }
+    
+    throw new \Exception('Failed to authenticate with Tranzak API. Please check your credentials.');
+}
 
     public function initiatePayment(Request $request, Course $course)
     {

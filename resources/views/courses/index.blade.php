@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
    
     <div class="relative bg-indigo-600 rounded-lg overflow-hidden mb-8">
@@ -16,7 +16,7 @@
     </div>
 
     {{-- Filters --}}
-    <div id="filters" class="mb-6 flex flex-wrap items-center gap-4">
+    <div id="filters" class="max-w-7xl mx-auto mb-6 flex flex-wrap items-center gap-4">
         <select id="levelFilter" class="border rounded px-3 py-2 text-gray-700">
             <option value="">All Levels</option>
             <option value="1">Beginner</option>
@@ -46,7 +46,7 @@
 
     {{-- Courses Grid --}}
      {{-- Courses Grid --}}
-        <div id="coursesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="coursesGrid" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($courses as $course)
                 @include('components.course-card', ['course' => $course])
             @endforeach

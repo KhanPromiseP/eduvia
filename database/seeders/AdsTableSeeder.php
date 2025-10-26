@@ -12,6 +12,9 @@ class AdsTableSeeder extends Seeder
 {
     public function run(): void
     {
+        // Create users and products if they don't exist
+        $this->createRequiredUsersAndProducts();
+
         // Get some users and products to associate with ads
         $users = User::limit(5)->get();
         $products = Product::limit(10)->get();
@@ -38,15 +41,15 @@ class AdsTableSeeder extends Seeder
             $endAt = $startAt ? $startAt->copy()->addDays(rand(7, 60)) : null;
             
             $isActive = (bool)rand(0, 1);
-            $hasProduct = rand(0, 1);
+            $hasProduct = $products->isNotEmpty() && rand(0, 1);
             $hasTargeting = rand(0, 1);
             
             $type = $types[array_rand($types)];
             $content = $this->generateAdContent($type);
             
             Ad::create([
-                'user_id' => $users->random()->id,
-                'product_id' => $hasProduct ? $products->random()->id : null,
+                'user_id' => $users->isNotEmpty() ? $users->random()->id : User::first()->id,
+                'product_id' => $hasProduct && $products->isNotEmpty() ? $products->random()->id : null,
                 'title' => $this->generateAdTitle($type),
                 'type' => $type,
                 'content' => $content,
@@ -69,6 +72,38 @@ class AdsTableSeeder extends Seeder
         // Create some special case ads
         $this->createSpecialCaseAds($users, $products);
     }
+
+    private function createRequiredUsersAndProducts(): void
+{
+    // Create at least one user if none exist
+    if (User::count() === 0) {
+        User::factory()->count(5)->create();
+    }
+
+    // Skip product creation if Product model doesn't exist or table has different structure
+    if (class_exists(Product::class) && Product::count() === 0) {
+        try {
+            // Try to create one product to test the schema
+            Product::create([
+                'title' => 'Sample Product', // Try 'title' first
+                'description' => 'Sample description',
+                'price' => 99.99,
+            ]);
+        } catch (\Exception $e) {
+            // If that fails, try with 'name'
+            try {
+                Product::create([
+                    'name' => 'Sample Product',
+                    'description' => 'Sample description', 
+                    'price' => 99.99,
+                ]);
+            } catch (\Exception $e) {
+                // If both fail, just skip product creation
+                \Log::info('Product creation skipped: ' . $e->getMessage());
+            }
+        }
+    }
+}
 
     private function generateAdTitle(string $type): string
     {
@@ -180,7 +215,7 @@ class AdsTableSeeder extends Seeder
     {
         // Ad with no end date (runs indefinitely)
         Ad::create([
-            'user_id' => $users->random()->id,
+            'user_id' => $users->isNotEmpty() ? $users->random()->id : User::first()->id,
             'title' => 'Permanent Brand Ad',
             'type' => 'banner',
             'content' => 'https://example.com/banners/brand.jpg',
@@ -194,7 +229,7 @@ class AdsTableSeeder extends Seeder
 
         // Ad that hasn't started yet
         Ad::create([
-            'user_id' => $users->random()->id,
+            'user_id' => $users->isNotEmpty() ? $users->random()->id : User::first()->id,
             'title' => 'Upcoming Holiday Sale',
             'type' => 'banner',
             'content' => 'https://example.com/banners/holiday.jpg',
@@ -208,8 +243,8 @@ class AdsTableSeeder extends Seeder
 
         // Expired ad
         Ad::create([
-            'user_id' => $users->random()->id,
-            'product_id' => $products->random()->id,
+            'user_id' => $users->isNotEmpty() ? $users->random()->id : User::first()->id,
+            'product_id' => $products->isNotEmpty() ? $products->random()->id : null,
             'title' => 'Old Christmas Sale',
             'type' => 'banner',
             'content' => 'https://example.com/banners/christmas.jpg',
@@ -222,7 +257,7 @@ class AdsTableSeeder extends Seeder
 
         // High priority ad
         Ad::create([
-            'user_id' => $users->random()->id,
+            'user_id' => $users->isNotEmpty() ? $users->random()->id : User::first()->id,
             'title' => 'Important Announcement',
             'type' => 'text',
             'content' => 'We have important news about our service updates. Click to learn more.',
@@ -237,8 +272,8 @@ class AdsTableSeeder extends Seeder
 
         // Mobile-only ad
         Ad::create([
-            'user_id' => $users->random()->id,
-            'product_id' => $products->random()->id,
+            'user_id' => $users->isNotEmpty() ? $users->random()->id : User::first()->id,
+            'product_id' => $products->isNotEmpty() ? $products->random()->id : null,
             'title' => 'Mobile App Exclusive',
             'type' => 'banner',
             'content' => 'https://example.com/banners/mobile-app.jpg',
@@ -253,7 +288,7 @@ class AdsTableSeeder extends Seeder
 
         // Business hours ad
         Ad::create([
-            'user_id' => $users->random()->id,
+            'user_id' => $users->isNotEmpty() ? $users->random()->id : User::first()->id,
             'title' => 'Customer Support Available',
             'type' => 'text',
             'content' => 'Our support team is available 9am-5pm. Click to chat now!',

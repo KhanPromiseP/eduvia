@@ -12,8 +12,8 @@
         <x-dropdown align="right">
             <x-slot name="trigger">
                 <button class="flex items-center space-x-2 focus:outline-none">
-                    @if(Auth::user()->profile_photo_path)
-                        <img src="{{ asset('storage/' . Auth::user()->profile_photo_path) }}" 
+                    @if(Auth::user()->profile_path)
+                        <img src="{{ asset('storage/' . Auth::user()->profile_path) }}" 
                              alt="{{ Auth::user()->name }}" 
                              class="h-10 w-10 rounded-full object-cover border border-gray-300">
                     @else

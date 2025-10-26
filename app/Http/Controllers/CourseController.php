@@ -14,6 +14,8 @@ class CourseController extends Controller
     {
         $courses = Course::where('is_published', true)->get();
 
+        
+
          // Get the authenticated user's purchased course IDs
         $purchasedCourseIds = [];
         if (Auth::check()) {
@@ -37,10 +39,11 @@ class CourseController extends Controller
             $query->orderBy('order');
         }, 'modules.attachments']);
 
-        
-        
+        $courses = Course::where('is_published', true)->get();
+        $categories = Category::all();
+
         $userHasPurchased = auth()->check() ? $course->isPurchasedBy(auth()->user()) : false;
         
-        return view('courses.show', compact('course', 'userHasPurchased'));
+        return view('courses.show', compact('course', 'courses', 'userHasPurchased', 'categories'));
     }
 }

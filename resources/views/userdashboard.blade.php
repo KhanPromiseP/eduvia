@@ -95,6 +95,93 @@
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
+
+        /* Sidebar styling */
+.module-item.active-module {
+    background-color: #f0f4ff;
+    border-left: 4px solid #4f46e5;
+}
+
+.attachment-item.active-attachment {
+    background-color: #f0f4ff;
+}
+
+.attachment-item.completed-attachment .truncate {
+    color: #10b981;
+}
+
+.attachment-item.completed-attachment i {
+    color: #10b981;
+}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    display: none;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .sidebar-mobile {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 85%;
+        max-width: 320px;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar-mobile.active {
+        transform: translateX(0);
+    }
+
+    /* Completion styling */
+.attachment-item.completed-attachment {
+    background-color: #f0f9ff;
+}
+
+.attachment-item.completed-attachment .truncate {
+    color: #059669;
+}
+
+.attachment-item.active-attachment {
+    background-color: #eef2ff;
+    border-left: 3px solid #4f46e5;
+}
+
+.module-item.active-module {
+    background-color: #f0f4ff;
+    border-left: 4px solid #4f46e5;
+}
+
+/* Main content area styling */
+#activeContent {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ensure hidden class works */
+.hidden {
+    display: none !important;
+}
+}
     </style>
 </head>
 <body class="bg-gray-100">
@@ -122,6 +209,7 @@
     <!-- Enhanced Resource Viewer JavaScript -->
     <script>
     // File type support configuration
+// File type support configuration
 const SUPPORTED_FILE_TYPES = {
     // Video formats
     'mp4': { supported: true, type: 'video', player: 'html5' },
@@ -157,52 +245,366 @@ const SUPPORTED_FILE_TYPES = {
     '7z': { supported: false, type: 'archive' }
 };
 
-// Enhanced Resource Viewer with Study Tools
+// Enhanced completion tracking using localStorage
+const COMPLETION_STORAGE_KEY = 'course_completions';
+
+// Study Tools
 const STUDY_TOOLS = {
     notes: {},
     bookmarks: {},
     flashcards: {}
 };
 
-// Initialize study tools from localStorage
-function initStudyTools() {
-    try {
-        const savedNotes = localStorage.getItem('study_notes');
-        const savedBookmarks = localStorage.getItem('study_bookmarks');
-        const savedFlashcards = localStorage.getItem('study_flashcards');
+// Initialize everything when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing Learning Dashboard...');
+    initCompletionTracking();
+    initStudyTools();
+    
+    // Auto-expand the current module if one is selected
+    @if(isset($selectedModule))
+        setTimeout(() => {
+            toggleModule({{ $selectedModule->id }});
+        }, 100);
+    @endif
+    
+    // Add security event listeners
+    document.addEventListener('contextmenu', function(e) {
+        if (e.target.closest('#resourceViewer') || e.target.closest('.secure-content')) {
+            e.preventDefault();
+            showSecurityToast('Downloading content is disabled to protect intellectual property.');
+        }
+    });
+
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.closest('#resourceViewer') || e.target.closest('.secure-content')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            const notesPanel = document.getElementById('notesPanel');
+            if (notesPanel && !notesPanel.classList.contains('hidden')) {
+                saveNotes();
+            }
+        }
         
-        if (savedNotes) STUDY_TOOLS.notes = JSON.parse(savedNotes);
-        if (savedBookmarks) STUDY_TOOLS.bookmarks = JSON.parse(savedBookmarks);
-        if (savedFlashcards) STUDY_TOOLS.flashcards = JSON.parse(savedFlashcards);
-    } catch (error) {
-        console.error('Error loading study tools:', error);
-        // Reset if corrupted
-        STUDY_TOOLS.notes = {};
-        STUDY_TOOLS.bookmarks = {};
-        STUDY_TOOLS.flashcards = {};
-        saveStudyTools();
+        if (e.key === 'Escape') {
+            const viewer = document.getElementById('resourceViewer');
+            if (viewer && !viewer.classList.contains('hidden')) {
+                closeResourceViewer();
+            }
+            
+            const studyModal = document.getElementById('studyToolsModal');
+            if (studyModal && !studyModal.classList.contains('hidden')) {
+                closeStudyTools();
+            }
+        }
+    });
+    
+    console.log('Learning Dashboard initialized successfully');
+});
+
+// ===== COMPLETION TRACKING =====
+function initCompletionTracking() {
+    if (!localStorage.getItem(COMPLETION_STORAGE_KEY)) {
+        localStorage.setItem(COMPLETION_STORAGE_KEY, JSON.stringify({}));
+    }
+    updateCompletionUI();
+}
+
+function markAttachmentAsCompleted(attachmentId) {
+    const completions = JSON.parse(localStorage.getItem(COMPLETION_STORAGE_KEY) || '{}');
+    completions[attachmentId] = true;
+    localStorage.setItem(COMPLETION_STORAGE_KEY, JSON.stringify(completions));
+    updateAttachmentUI(attachmentId);
+}
+
+function isAttachmentCompleted(attachmentId) {
+    const completions = JSON.parse(localStorage.getItem(COMPLETION_STORAGE_KEY) || '{}');
+    return completions[attachmentId] || false;
+}
+
+function updateAttachmentUI(attachmentId) {
+    const attachmentElement = document.querySelector(`[data-attachment-id="${attachmentId}"]`);
+    if (attachmentElement && isAttachmentCompleted(attachmentId)) {
+        attachmentElement.classList.add('completed-attachment');
+        if (!attachmentElement.querySelector('.viewed-indicator')) {
+            const checkmark = document.createElement('span');
+            checkmark.className = 'viewed-indicator ml-2 text-xs text-green-600';
+            checkmark.innerHTML = '<i class="fas fa-check-circle"></i>';
+            attachmentElement.appendChild(checkmark);
+        }
     }
 }
 
-// Save study tools to localStorage
-function saveStudyTools() {
-    try {
-        localStorage.setItem('study_notes', JSON.stringify(STUDY_TOOLS.notes));
-        localStorage.setItem('study_bookmarks', JSON.stringify(STUDY_TOOLS.bookmarks));
-        localStorage.setItem('study_flashcards', JSON.stringify(STUDY_TOOLS.flashcards));
-    } catch (error) {
-        console.error('Error saving study tools:', error);
+function updateCompletionUI() {
+    const completions = JSON.parse(localStorage.getItem(COMPLETION_STORAGE_KEY) || '{}');
+    Object.keys(completions).forEach(attachmentId => {
+        updateAttachmentUI(attachmentId);
+    });
+}
+
+// ===== MAIN ATTACHMENT HANDLING =====
+function openAttachmentInDashboard(attachmentId, fileType, title, fileUrl, resourceType, description = '') {
+    console.log('Opening attachment in dashboard:', attachmentId, title);
+    
+    // Mark as completed
+    markAttachmentAsCompleted(attachmentId);
+    
+    // Update active states in sidebar
+    document.querySelectorAll('.attachment-item').forEach(el => {
+        el.classList.remove('active-attachment');
+    });
+    
+    const activeElement = document.querySelector(`[data-attachment-id="${attachmentId}"]`);
+    if (activeElement) {
+        activeElement.classList.add('active-attachment');
+    }
+    
+    // Hide default content and show active content
+    const defaultContent = document.getElementById('defaultContent');
+    const activeContent = document.getElementById('activeContent');
+    
+    if (defaultContent && activeContent) {
+        defaultContent.classList.add('hidden');
+        activeContent.classList.remove('hidden');
+        
+        // Display the content in the main area
+        displayContentInMainArea(attachmentId, fileType, title, fileUrl, resourceType, description);
+    } else {
+        console.error('Content elements not found - falling back to resource viewer');
+        // Fallback to resource viewer
+        openResourceViewer(attachmentId, fileType, title, fileUrl, resourceType);
     }
 }
 
-// Extract YouTube ID from URL
-function extractYouTubeId(url) {
-    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[7].length === 11) ? match[7] : null;
+function displayContentInMainArea(attachmentId, fileType, title, fileUrl, resourceType, description) {
+    const activeContent = document.getElementById('activeContent');
+    if (!activeContent) {
+        console.error('Active content element not found');
+        return;
+    }
+    
+    console.log('Displaying content:', fileType, resourceType);
+    
+    if (resourceType === 'external_video' || isVideoFile(fileType)) {
+        activeContent.innerHTML = createVideoContent(title, fileUrl, resourceType, fileType, description);
+    } else if (isImageFile(fileType)) {
+        activeContent.innerHTML = createImageContent(title, fileUrl, description);
+    } else if (isDocumentFile(fileType)) {
+        activeContent.innerHTML = createDocumentContent(title, fileUrl, fileType, description);
+    } else {
+        activeContent.innerHTML = createGenericContent(title, fileUrl, fileType, description);
+    }
 }
 
-// Enhanced resource viewer with external video support
+// ===== CONTENT CREATION FUNCTIONS =====
+function createVideoContent(title, fileUrl, resourceType, fileType, description) {
+    if (resourceType === 'external_video') {
+        const youtubeId = extractYouTubeId(fileUrl);
+        if (youtubeId) {
+            return `
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="bg-black rounded-t-lg">
+                        <iframe 
+                            src="https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&autoplay=1" 
+                            class="w-full h-96" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">${title}</h3>
+                        ${description ? `<p class="text-gray-600 mb-4">${description}</p>` : ''}
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fab fa-youtube text-red-500 mr-2"></i>
+                            <span>YouTube Video</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    return `
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="bg-black rounded-t-lg">
+                <video controls controlsList="nodownload" class="w-full h-96" autoplay>
+                    <source src="${fileUrl}" type="${getVideoMimeType(fileType)}">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="p-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">${title}</h3>
+                ${description ? `<p class="text-gray-600 mb-4">${description}</p>` : ''}
+                <div class="flex items-center text-sm text-gray-500">
+                    <i class="fas fa-video text-purple-500 mr-2"></i>
+                    <span>Video Content</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createImageContent(title, fileUrl, description) {
+    return `
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">${title}</h3>
+                ${description ? `<p class="text-gray-600 mb-4">${description}</p>` : ''}
+                <div class="flex justify-center">
+                    <img src="${fileUrl}" alt="${title}" class="max-w-full max-h-96 rounded-lg shadow-md" 
+                         oncontextmenu="return false;" loading="lazy">
+                </div>
+                <div class="mt-4 flex items-center text-sm text-gray-500">
+                    <i class="fas fa-image text-green-500 mr-2"></i>
+                    <span>Image Content</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createDocumentContent(title, fileUrl, fileType, description) {
+    const fileExtension = fileType.toLowerCase();
+    
+    return `
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-800">${title}</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="openInFullscreen('${fileUrl}', '${fileType}')" 
+                                class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition flex items-center">
+                            <i class="fas fa-expand mr-2"></i> Fullscreen
+                        </button>
+                        <a href="${fileUrl}" download 
+                           class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition flex items-center">
+                            <i class="fas fa-download mr-2"></i> Download
+                        </a>
+                    </div>
+                </div>
+                
+                ${description ? `<p class="text-gray-600 mb-6">${description}</p>` : ''}
+                
+                <div class="bg-gray-50 rounded-lg border">
+                    <!-- Document Viewer Header -->
+                    <div class="bg-white border-b px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas ${getDocumentIcon(fileType)} text-indigo-600 mr-2"></i>
+                                <span class="font-medium">${fileExtension.toUpperCase()} Document</span>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                ${getDocumentTypeDescription(fileType)}
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="zoomDocument('out')" class="p-2 hover:bg-gray-100 rounded">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                            <span id="zoomLevel" class="text-sm text-gray-600 w-12 text-center">100%</span>
+                            <button onclick="zoomDocument('in')" class="p-2 hover:bg-gray-100 rounded">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Viewer Content -->
+                    <div class="p-4" style="height: 70vh;">
+                        ${createDocumentViewerContent(fileUrl, fileType, title)}
+                    </div>
+                    
+                    <!-- Document Controls Footer -->
+                    <div class="bg-white border-t px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <button onclick="previousPage()" class="flex items-center text-gray-600 hover:text-gray-800">
+                                <i class="fas fa-chevron-left mr-1"></i> Previous
+                            </button>
+                            <span id="pageInfo" class="text-sm text-gray-600">Page 1 of 1</span>
+                            <button onclick="nextPage()" class="flex items-center text-gray-600 hover:text-gray-800">
+                                Next <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="toggleStudyTools()" class="flex items-center text-gray-600 hover:text-indigo-600">
+                                <i class="fas fa-highlighter mr-1"></i> Study Tools
+                            </button>
+                            <button onclick="printDocument('${fileUrl}')" class="flex items-center text-gray-600 hover:text-indigo-600">
+                                <i class="fas fa-print mr-1"></i> Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Study Tools Panel -->
+                <div id="studyToolsPanel" class="hidden mt-4 bg-white border rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-semibold text-gray-800">Study Tools</h4>
+                        <button onclick="toggleStudyTools()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <button onclick="addBookmark()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 p-3 rounded-lg">
+                                <i class="fas fa-bookmark text-lg mb-2"></i>
+                                <div class="text-sm font-medium">Add Bookmark</div>
+                            </button>
+                        </div>
+                        <div class="text-center">
+                            <button onclick="openNotes()" class="w-full bg-green-50 hover:bg-green-100 text-green-600 p-3 rounded-lg">
+                                <i class="fas fa-edit text-lg mb-2"></i>
+                                <div class="text-sm font-medium">Take Notes</div>
+                            </button>
+                        </div>
+                        <div class="text-center">
+                            <button onclick="createFlashcard()" class="w-full bg-purple-50 hover:bg-purple-100 text-purple-600 p-3 rounded-lg">
+                                <i class="fas fa-layer-group text-lg mb-2"></i>
+                                <div class="text-sm font-medium">Create Flashcard</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createGenericContent(title, fileUrl, fileType, description) {
+    // For generic files, try to use the document viewer if it makes sense
+    if (['ppt', 'pptx', 'xls', 'xlsx'].includes(fileType.toLowerCase())) {
+        return createDocumentContent(title, fileUrl, fileType, description);
+    }
+    
+    return `
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">${title}</h3>
+                ${description ? `<p class="text-gray-600 mb-4">${description}</p>` : ''}
+                <div class="bg-gray-50 rounded-lg p-8 text-center">
+                    <div class="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-download text-gray-600 text-3xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Download Required</h4>
+                    <p class="text-gray-600 mb-4">This ${fileType.toUpperCase()} file needs to be downloaded to view its contents.</p>
+                    <a href="${fileUrl}" download 
+                       class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition inline-flex items-center text-lg">
+                        <i class="fas fa-download mr-3"></i> Download ${fileType.toUpperCase()} File
+                    </a>
+                    <p class="text-sm text-gray-500 mt-4">File will be saved to your downloads folder</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ===== RESOURCE VIEWER FUNCTIONS =====
 function openResourceViewer(attachmentId, fileType, title, fileUrl, resourceType = 'file') {
     const viewer = document.getElementById('resourceViewer');
     const viewerContent = document.getElementById('viewerContent');
@@ -245,79 +647,71 @@ function openResourceViewer(attachmentId, fileType, title, fileUrl, resourceType
     loadExistingNotes(attachmentId);
 }
 
-function loadExternalVideo(videoUrl, title) {
-    const viewerContent = document.getElementById('viewerContent');
-    const viewerLoading = document.getElementById('viewerLoading');
+// function loadExternalVideo(videoUrl, title) {
+//     const viewerContent = document.getElementById('viewerContent');
+//     const viewerLoading = document.getElementById('viewerLoading');
     
-    try {
-        // Check if it's YouTube
-        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
-            const videoId = extractYouTubeId(videoUrl);
-            if (videoId) {
-                viewerContent.innerHTML = `
-                    <div class="bg-black rounded-lg overflow-hidden shadow-lg">
-                        <iframe 
-                            src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" 
-                            class="w-full h-96" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                        </iframe>
-                    </div>
-                    <div class="mt-4 bg-white rounded-lg p-4 shadow-sm">
-                        <h4 class="font-semibold text-gray-800 mb-2">${title}</h4>
-                        <p class="text-sm text-gray-600">YouTube video - use player controls to navigate</p>
-                    </div>
-                `;
-            } else {
-                throw new Error('Invalid YouTube URL');
-            }
-        } else {
-            // Generic video embed
-            viewerContent.innerHTML = `
-                <div class="bg-white rounded-lg p-6 text-center">
-                    <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-external-link-alt text-blue-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">External Video</h3>
-                    <p class="text-gray-600 mb-4">This video is hosted externally.</p>
-                    <a href="${videoUrl}" target="_blank" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
-                        Watch on External Site
-                    </a>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error loading external video:', error);
-        showErrorViewer('Failed to load the external video.');
-    } finally {
-        viewerLoading.classList.add('hidden');
-    }
-}
+//     try {
+//         if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+//             const videoId = extractYouTubeId(videoUrl);
+//             if (videoId) {
+//                 viewerContent.innerHTML = `
+//                     <div class="bg-black rounded-lg overflow-hidden shadow-lg">
+//                         <iframe 
+//                             src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" 
+//                             class="w-full h-96" 
+//                             frameborder="0" 
+//                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+//                             allowfullscreen>
+//                         </iframe>
+//                     </div>
+//                     <div class="mt-4 bg-white rounded-lg p-4 shadow-sm">
+//                         <h4 class="font-semibold text-gray-800 mb-2">${title}</h4>
+//                         <p class="text-sm text-gray-600">YouTube video - use player controls to navigate</p>
+//                     </div>
+//                 `;
+//             } else {
+//                 throw new Error('Invalid YouTube URL');
+//             }
+//         } else {
+//             viewerContent.innerHTML = `
+//                 <div class="bg-white rounded-lg p-6 text-center">
+//                     <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+//                         <i class="fas fa-external-link-alt text-blue-600 text-2xl"></i>
+//                     </div>
+//                     <h3 class="text-xl font-semibold text-gray-800 mb-2">External Video</h3>
+//                     <p class="text-gray-600 mb-4">This video is hosted externally.</p>
+//                     <a href="${videoUrl}" target="_blank" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+//                         Watch on External Site
+//                     </a>
+//                 </div>
+//             `;
+//         }
+//     } catch (error) {
+//         console.error('Error loading external video:', error);
+//         showErrorViewer('Failed to load the external video.');
+//     } finally {
+//         viewerLoading.classList.add('hidden');
+//     }
+// }
 
 async function loadFileContent(attachmentId, fileType, fileConfig, title, fileUrl) {
     const viewerContent = document.getElementById('viewerContent');
     const viewerLoading = document.getElementById('viewerLoading');
     
-    if (!viewerContent || !viewerLoading) {
-        console.error('Viewer elements not found');
-        return;
-    }
+    if (!viewerContent || !viewerLoading) return;
     
     try {
         switch (fileConfig.type) {
             case 'video':
                 viewerContent.innerHTML = createVideoPlayer(fileUrl, fileType, title);
                 break;
-                
             case 'audio':
                 viewerContent.innerHTML = createAudioPlayer(fileUrl, fileType, title);
                 break;
-                
             case 'image':
                 viewerContent.innerHTML = createImageViewer(fileUrl, title);
                 break;
-                
             case 'document':
                 if (fileConfig.viewer === 'pdfjs' && fileType.toLowerCase() === 'pdf') {
                     viewerContent.innerHTML = createPDFViewer();
@@ -330,7 +724,6 @@ async function loadFileContent(attachmentId, fileType, fileConfig, title, fileUr
                     viewerContent.innerHTML = createDocumentViewer(fileUrl, title, fileType);
                 }
                 break;
-                
             default:
                 showUnsupportedFileType(fileType, title);
         }
@@ -465,10 +858,8 @@ async function loadPDFDocument(url, container) {
             container.querySelector('#zoomLevel').textContent = Math.round(currentScale * 100) + '%';
         };
         
-        // Render first page
         await renderPage(currentPage);
         
-        // Add event listeners
         container.querySelector('#prevPage').addEventListener('click', async () => {
             if (currentPage > 1) {
                 currentPage--;
@@ -515,7 +906,6 @@ async function loadDocxDocument(url, container) {
             </div>
         `;
         
-        // Render DOCX using docx-preview library
         docx.renderAsync(blob, container.querySelector('#docx-container'));
     } catch (error) {
         console.error('Error loading DOCX:', error);
@@ -561,6 +951,255 @@ function showUnsupportedFileType(fileType, title) {
     `;
 }
 
+// ===== ENHANCED DOCUMENT VIEWER FUNCTIONS =====
+function getDocumentIcon(fileType) {
+    const icons = {
+        'pdf': 'fa-file-pdf',
+        'doc': 'fa-file-word',
+        'docx': 'fa-file-word',
+        'txt': 'fa-file-alt',
+        'ppt': 'fa-file-powerpoint',
+        'pptx': 'fa-file-powerpoint',
+        'xls': 'fa-file-excel',
+        'xlsx': 'fa-file-excel'
+    };
+    return icons[fileType.toLowerCase()] || 'fa-file';
+}
+
+function getDocumentTypeDescription(fileType) {
+    const descriptions = {
+        'pdf': 'Portable Document Format',
+        'doc': 'Microsoft Word Document',
+        'docx': 'Microsoft Word Document',
+        'txt': 'Plain Text File',
+        'ppt': 'Microsoft PowerPoint',
+        'pptx': 'Microsoft PowerPoint',
+        'xls': 'Microsoft Excel',
+        'xlsx': 'Microsoft Excel'
+    };
+    return descriptions[fileType.toLowerCase()] || 'Document File';
+}
+
+function createDocumentViewerContent(fileUrl, fileType, title) {
+    const fileExtension = fileType.toLowerCase();
+    
+    if (fileExtension === 'pdf') {
+        return `
+            <div class="h-full bg-white">
+                <iframe src="${fileUrl}#toolbar=0&navpanes=0" 
+                        class="w-full h-full border rounded" 
+                        frameborder="0"
+                        oncontextmenu="return false;"
+                        onload="documentLoaded()">
+                </iframe>
+            </div>
+        `;
+    } else if (['doc', 'docx'].includes(fileExtension)) {
+        return `
+            <div class="h-full flex items-center justify-center bg-gray-50 rounded">
+                <div class="text-center">
+                    <div class="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-file-word text-blue-600 text-3xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Word Document</h4>
+                    <p class="text-gray-600 mb-4">Preview not available in browser</p>
+                    <a href="${fileUrl}" 
+                       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition inline-flex items-center">
+                        <i class="fas fa-download mr-2"></i> Download to View
+                    </a>
+                </div>
+            </div>
+        `;
+    } else if (fileExtension === 'txt') {
+        return `
+            <div class="h-full bg-white border rounded">
+                <iframe src="${fileUrl}" 
+                        class="w-full h-full font-mono text-sm p-4"
+                        frameborder="0"
+                        oncontextmenu="return false;">
+                </iframe>
+            </div>
+        `;
+    } else {
+        return `
+            <div class="h-full flex items-center justify-center bg-gray-50 rounded">
+                <div class="text-center">
+                    <div class="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-file text-gray-600 text-3xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">${fileExtension.toUpperCase()} Document</h4>
+                    <p class="text-gray-600 mb-4">This document type is best viewed by downloading</p>
+                    <a href="${fileUrl}" download
+                       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition inline-flex items-center">
+                        <i class="fas fa-download mr-2"></i> Download Document
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ===== DOCUMENT CONTROLS =====
+function zoomDocument(direction) {
+    const zoomElement = document.getElementById('zoomLevel');
+    let currentZoom = parseInt(zoomElement.textContent);
+    
+    if (direction === 'in' && currentZoom < 200) {
+        currentZoom += 25;
+    } else if (direction === 'out' && currentZoom > 50) {
+        currentZoom -= 25;
+    }
+    
+    zoomElement.textContent = currentZoom + '%';
+    
+    // Apply zoom to iframe or content
+    const iframe = document.querySelector('#activeContent iframe');
+    if (iframe) {
+        iframe.style.transform = `scale(${currentZoom / 100})`;
+        iframe.style.transformOrigin = 'top left';
+    }
+}
+
+function previousPage() {
+    const iframe = document.querySelector('#activeContent iframe');
+    if (iframe && iframe.contentWindow) {
+        try {
+            iframe.contentWindow.history.back();
+        } catch (e) {
+            console.log('Cannot navigate pages in this document');
+        }
+    }
+}
+
+function nextPage() {
+    const iframe = document.querySelector('#activeContent iframe');
+    if (iframe && iframe.contentWindow) {
+        try {
+            iframe.contentWindow.history.forward();
+        } catch (e) {
+            console.log('Cannot navigate pages in this document');
+        }
+    }
+}
+
+function toggleStudyTools() {
+    const panel = document.getElementById('studyToolsPanel');
+    if (panel) {
+        panel.classList.toggle('hidden');
+    }
+}
+
+function openInFullscreen(fileUrl, fileType) {
+    const fullscreenHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${document.title}</title>
+            <style>
+                body { margin: 0; padding: 20px; background: #f5f5f5; }
+                .toolbar { 
+                    position: fixed; 
+                    top: 10px; 
+                    right: 10px; 
+                    background: white; 
+                    padding: 10px; 
+                    border-radius: 8px; 
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                }
+                iframe { 
+                    width: 100%; 
+                    height: 100vh; 
+                    border: none; 
+                    background: white;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="toolbar">
+                <button onclick="window.close()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Close
+                </button>
+            </div>
+            <iframe src="${fileUrl}"></iframe>
+        </body>
+        </html>
+    `;
+    
+    const fullscreenWindow = window.open('', '_blank', 'fullscreen=yes');
+    fullscreenWindow.document.write(fullscreenHtml);
+    fullscreenWindow.document.close();
+}
+
+function printDocument(fileUrl) {
+    const printWindow = window.open(fileUrl, '_blank');
+    printWindow.onload = function() {
+        printWindow.print();
+    };
+}
+
+function addBookmark() {
+    const activeContent = document.getElementById('activeContent');
+    const title = activeContent.querySelector('h3')?.textContent || 'Document';
+    
+    STUDY_TOOLS.bookmarks[`doc_${Date.now()}`] = {
+        title: title,
+        type: 'document',
+        timestamp: new Date().toISOString(),
+        url: window.location.href
+    };
+    
+    saveStudyTools();
+    showToast('Document bookmarked!', 'success');
+}
+
+function openNotes() {
+    const modal = document.getElementById('studyToolsModal');
+    const title = document.getElementById('studyToolsTitle');
+    const content = document.getElementById('studyToolsContent');
+    
+    if (modal && title && content) {
+        const docTitle = document.querySelector('#activeContent h3')?.textContent || 'Current Document';
+        title.textContent = `Notes for ${docTitle}`;
+        
+        const noteId = `doc_notes_${btoa(docTitle)}`;
+        content.innerHTML = `
+            <textarea class="w-full h-64 p-4 border rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                      placeholder="Write your notes about this document...">${STUDY_TOOLS.notes[noteId] || ''}</textarea>
+            <div class="flex justify-between mt-4">
+                <button onclick="saveDocumentNotes('${noteId}')" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+                    Save Notes
+                </button>
+                <button onclick="closeStudyTools()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition">
+                    Cancel
+                </button>
+            </div>
+        `;
+        
+        modal.classList.remove('hidden');
+    }
+}
+
+function saveDocumentNotes(noteId) {
+    const textarea = document.querySelector('#studyToolsContent textarea');
+    if (textarea) {
+        STUDY_TOOLS.notes[noteId] = textarea.value;
+        saveStudyTools();
+        showToast('Notes saved successfully!', 'success');
+        closeStudyTools();
+    }
+}
+
+function createFlashcard() {
+    showToast('Create a flashcard from this document content', 'info');
+    // Implementation for flashcard creation would go here
+}
+
+function documentLoaded() {
+    console.log('Document loaded successfully');
+    // Additional initialization when document is loaded
+}
+
 function showErrorViewer(message) {
     const viewerContent = document.getElementById('viewerContent');
     
@@ -576,34 +1215,6 @@ function showErrorViewer(message) {
             </button>
         </div>
     `;
-}
-
-function getVideoMimeType(extension) {
-    const types = {
-        'mp4': 'video/mp4',
-        'mov': 'video/quicktime',
-        'avi': 'video/x-msvideo',
-        'mkv': 'video/x-matroska',
-        'webm': 'video/webm',
-        'wmv': 'video/x-ms-wmv'
-    };
-    return types[extension.toLowerCase()] || 'video/mp4';
-}
-
-function getAudioMimeType(extension) {
-    const types = {
-        'mp3': 'audio/mpeg',
-        'wav': 'audio/wav',
-        'ogg': 'audio/ogg',
-        'm4a': 'audio/mp4'
-    };
-    return types[extension.toLowerCase()] || 'audio/mpeg';
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 function closeResourceViewer() {
@@ -632,14 +1243,41 @@ function closeResourceViewer() {
     }
 }
 
-// Study Tools Functions
+// ===== STUDY TOOLS FUNCTIONS =====
+function initStudyTools() {
+    try {
+        const savedNotes = localStorage.getItem('study_notes');
+        const savedBookmarks = localStorage.getItem('study_bookmarks');
+        const savedFlashcards = localStorage.getItem('study_flashcards');
+        
+        if (savedNotes) STUDY_TOOLS.notes = JSON.parse(savedNotes);
+        if (savedBookmarks) STUDY_TOOLS.bookmarks = JSON.parse(savedBookmarks);
+        if (savedFlashcards) STUDY_TOOLS.flashcards = JSON.parse(savedFlashcards);
+    } catch (error) {
+        console.error('Error loading study tools:', error);
+        STUDY_TOOLS.notes = {};
+        STUDY_TOOLS.bookmarks = {};
+        STUDY_TOOLS.flashcards = {};
+        saveStudyTools();
+    }
+}
+
+function saveStudyTools() {
+    try {
+        localStorage.setItem('study_notes', JSON.stringify(STUDY_TOOLS.notes));
+        localStorage.setItem('study_bookmarks', JSON.stringify(STUDY_TOOLS.bookmarks));
+        localStorage.setItem('study_flashcards', JSON.stringify(STUDY_TOOLS.flashcards));
+    } catch (error) {
+        console.error('Error saving study tools:', error);
+    }
+}
+
 function takeNotes(moduleId) {
     const modal = document.getElementById('studyToolsModal');
     const title = document.getElementById('studyToolsTitle');
     const content = document.getElementById('studyToolsContent');
     
     if (!modal || !title || !content) {
-        console.error('Study tools modal elements not found');
         showToast('Study tools not available. Please refresh the page.', 'error');
         return;
     }
@@ -714,7 +1352,24 @@ function bookmarkCurrentResource() {
     }
 }
 
-// Toggle between grid and list view for resources
+// ===== UTILITY FUNCTIONS =====
+function toggleModule(moduleId) {
+    const moduleAttachments = document.getElementById(`moduleAttachments-${moduleId}`);
+    const moduleIcon = document.getElementById(`moduleIcon-${moduleId}`);
+    
+    if (moduleAttachments && moduleIcon) {
+        if (moduleAttachments.classList.contains('hidden')) {
+            moduleAttachments.classList.remove('hidden');
+            moduleIcon.classList.remove('fa-chevron-down');
+            moduleIcon.classList.add('fa-chevron-up');
+        } else {
+            moduleAttachments.classList.add('hidden');
+            moduleIcon.classList.remove('fa-chevron-up');
+            moduleIcon.classList.add('fa-chevron-down');
+        }
+    }
+}
+
 function toggleResourceView() {
     const gridView = document.getElementById('resourceGrid');
     const listView = document.getElementById('resourceList');
@@ -732,57 +1387,57 @@ function toggleResourceView() {
     }
 }
 
-// Bookmark course
-function bookmarkCourse(courseId) {
-    STUDY_TOOLS.bookmarks[`course_${courseId}`] = {
-        title: 'Course Bookmark',
-        type: 'course',
-        timestamp: new Date().toISOString()
+function isVideoFile(fileType) {
+    const videoTypes = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'wmv'];
+    return videoTypes.includes(fileType.toLowerCase());
+}
+
+function isImageFile(fileType) {
+    const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+    return imageTypes.includes(fileType.toLowerCase());
+}
+
+function isDocumentFile(fileType) {
+    const documentTypes = ['pdf', 'doc', 'docx', 'txt'];
+    return documentTypes.includes(fileType.toLowerCase());
+}
+
+function extractYouTubeId(url) {
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : null;
+}
+
+function getVideoMimeType(extension) {
+    const types = {
+        'mp4': 'video/mp4',
+        'mov': 'video/quicktime',
+        'avi': 'video/x-msvideo',
+        'mkv': 'video/x-matroska',
+        'webm': 'video/webm',
+        'wmv': 'video/x-ms-wmv'
     };
-    saveStudyTools();
-    showToast('Course bookmarked!', 'success');
+    return types[extension.toLowerCase()] || 'video/mp4';
 }
 
-// Share course
-function shareCourse(courseId) {
-    if (navigator.share) {
-        navigator.share({
-            title: 'Check out this course',
-            text: 'I found this amazing course on our learning platform!',
-            url: window.location.origin + '/courses/' + courseId
-        })
-        .catch(error => {
-            console.log('Error sharing:', error);
-            showToast('Sharing failed. Please try again.', 'error');
-        });
-    } else {
-        // Fallback for browsers that don't support Web Share API
-        const shareUrl = window.location.origin + '/courses/' + courseId;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(shareUrl)
-                .then(() => {
-                    showToast('Course link copied to clipboard!', 'success');
-                })
-                .catch(err => {
-                    console.error('Failed to copy: ', err);
-                    showToast('Failed to copy link. Please try again.', 'error');
-                });
-        } else {
-            // Fallback for older browsers
-            const tempInput = document.createElement('input');
-            tempInput.value = shareUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showToast('Course link copied to clipboard!', 'success');
-        }
-    }
+function getAudioMimeType(extension) {
+    const types = {
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'ogg': 'audio/ogg',
+        'm4a': 'audio/mp4'
+    };
+    return types[extension.toLowerCase()] || 'audio/mpeg';
 }
 
-// Show toast notifications
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ===== TOAST AND MODAL FUNCTIONS =====
 function showToast(message, type = 'info') {
-    // Remove existing toasts
     document.querySelectorAll('[id^="toast-"]').forEach(toast => toast.remove());
     
     const toastId = 'toast-' + Date.now();
@@ -798,13 +1453,11 @@ function showToast(message, type = 'info') {
     
     document.body.appendChild(toast);
     
-    // Animate in
     setTimeout(() => {
         toast.classList.remove('translate-x-full');
         toast.classList.add('translate-x-0');
     }, 10);
     
-    // Remove after 3 seconds
     setTimeout(() => {
         toast.classList.remove('translate-x-0');
         toast.classList.add('translate-x-full');
@@ -836,7 +1489,6 @@ function getToastIcon(type) {
     return icons[type] || icons.info;
 }
 
-// Close study tools modal
 function closeStudyTools() {
     const modal = document.getElementById('studyToolsModal');
     if (modal) {
@@ -844,7 +1496,6 @@ function closeStudyTools() {
     }
 }
 
-// Hide notes panel
 function hideNotesPanel() {
     const notesPanel = document.getElementById('notesPanel');
     if (notesPanel) {
@@ -852,9 +1503,7 @@ function hideNotesPanel() {
     }
 }
 
-// Security measures
 function showSecurityToast(message) {
-    // Remove existing toast if any
     const existingToast = document.getElementById('securityToast');
     if (existingToast) existingToast.remove();
     
@@ -870,13 +1519,11 @@ function showSecurityToast(message) {
     
     document.body.appendChild(toast);
     
-    // Animate in
     setTimeout(() => {
         toast.classList.remove('translate-x-full');
         toast.classList.add('translate-x-0');
     }, 10);
     
-    // Remove after 3 seconds
     setTimeout(() => {
         toast.classList.remove('translate-x-0');
         toast.classList.add('translate-x-full');
@@ -888,187 +1535,77 @@ function showSecurityToast(message) {
     }, 3000);
 }
 
-// Initialize when document is ready
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing Learning Dashboard...');
-    initStudyTools();
-    
-    // Add event listeners for security
-    document.addEventListener('contextmenu', function(e) {
-        if (e.target.closest('#resourceViewer') || e.target.closest('.secure-content')) {
-            e.preventDefault();
-            showSecurityToast('Downloading content is disabled to protect intellectual property.');
-        }
-    });
-
-    document.addEventListener('dragstart', function(e) {
-        if (e.target.closest('#resourceViewer') || e.target.closest('.secure-content')) {
-            e.preventDefault();
-        }
-    });
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            const notesPanel = document.getElementById('notesPanel');
-            if (notesPanel && !notesPanel.classList.contains('hidden')) {
-                saveNotes();
-            }
-        }
-        
-        if (e.key === 'Escape') {
-            const viewer = document.getElementById('resourceViewer');
-            if (viewer && !viewer.classList.contains('hidden')) {
-                closeResourceViewer();
-            }
-            
-            const studyModal = document.getElementById('studyToolsModal');
-            if (studyModal && !studyModal.classList.contains('hidden')) {
-                closeStudyTools();
-            }
-        }
-    });
-    
-    // Initialize any collapsed modules
-    const firstModule = document.querySelector('.module-content');
-    if (firstModule) {
-        const firstModuleId = firstModule.id.split('-')[1];
-        toggleModule(firstModuleId);
-    }
-    
-    console.log('Learning Dashboard initialized successfully');
-});
-
-// Module toggle function (if not already defined)
-function toggleModule(moduleId) {
-    const moduleContent = document.getElementById(`module-${moduleId}`);
-    const icon = document.getElementById(`icon-${moduleId}`);
-    
-    if (moduleContent && icon) {
-        if (moduleContent.classList.contains('collapsed')) {
-            moduleContent.classList.remove('collapsed');
-            moduleContent.classList.add('expanded');
-            icon.classList.remove('fa-caret-down');
-            icon.classList.add('fa-caret-up');
-        } else {
-            moduleContent.classList.remove('expanded');
-            moduleContent.classList.add('collapsed');
-            icon.classList.remove('fa-caret-up');
-            icon.classList.add('fa-caret-down');
-        }
-    }
+// ===== PLACEHOLDER FUNCTIONS =====
+function openAIAssistant() {
+    showToast('AI Assistant feature coming soon!', 'info');
 }
 
-// Additional study tool functions
-function openStudyTools() {
-    const modal = document.getElementById('studyToolsModal');
-    const title = document.getElementById('studyToolsTitle');
-    const content = document.getElementById('studyToolsContent');
-    
-    if (modal && title && content) {
-        title.textContent = 'Study Tools';
-        content.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <h4 class="font-semibold text-blue-800 mb-2">Notes</h4>
-                    <p class="text-blue-600 text-sm">Access and manage your study notes</p>
-                    <button onclick="showAllNotes()" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                        View All Notes
-                    </button>
-                </div>
-                <div class="bg-green-50 p-4 rounded-lg">
-                    <h4 class="font-semibold text-green-800 mb-2">Bookmarks</h4>
-                    <p class="text-green-600 text-sm">Access your saved bookmarks</p>
-                    <button onclick="showAllBookmarks()" class="mt-2 bg-green-600 text-white px-3 py-1 rounded text-sm">
-                        View Bookmarks
-                    </button>
-                </div>
-            </div>
-        `;
-        modal.classList.remove('hidden');
-    }
+function takeCourseNotes() {
+    showToast('Course Notes feature coming soon!', 'info');
 }
 
-function showAllNotes() {
-    const modal = document.getElementById('studyToolsModal');
-    const title = document.getElementById('studyToolsTitle');
-    const content = document.getElementById('studyToolsContent');
-    
-    if (modal && title && content) {
-        title.textContent = 'All Notes';
-        let notesHtml = '<div class="space-y-3 max-h-96 overflow-y-auto">';
-        
-        if (Object.keys(STUDY_TOOLS.notes).length === 0) {
-            notesHtml += '<p class="text-gray-500 text-center py-4">No notes yet. Start taking notes on resources!</p>';
-        } else {
-            for (const [id, note] of Object.entries(STUDY_TOOLS.notes)) {
-                if (note.trim()) {
-                    notesHtml += `
-                        <div class="bg-white border rounded p-3">
-                            <p class="text-sm text-gray-700">${note}</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="text-xs text-gray-500">ID: ${id}</span>
-                                <button onclick="deleteNote('${id}')" class="text-red-600 text-xs">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-        }
-        
-        notesHtml += '</div>';
-        content.innerHTML = notesHtml;
-    }
+function openCourseBookmarks() {
+    showToast('Course Bookmarks feature coming soon!', 'info');
 }
 
-function deleteNote(noteId) {
-    delete STUDY_TOOLS.notes[noteId];
+function openCourseFlashcards() {
+    showToast('Course Flashcards feature coming soon!', 'info');
+}
+
+function downloadCourseResources() {
+    showToast('Download Resources feature coming soon!', 'info');
+}
+
+function bookmarkCourse(courseId) {
+    STUDY_TOOLS.bookmarks[`course_${courseId}`] = {
+        title: 'Course Bookmark',
+        type: 'course',
+        timestamp: new Date().toISOString()
+    };
     saveStudyTools();
-    showAllNotes();
-    showToast('Note deleted', 'success');
+    showToast('Course bookmarked!', 'success');
 }
 
-function showAllBookmarks() {
-    const modal = document.getElementById('studyToolsModal');
-    const title = document.getElementById('studyToolsTitle');
-    const content = document.getElementById('studyToolsContent');
-    
-    if (modal && title && content) {
-        title.textContent = 'All Bookmarks';
-        let bookmarksHtml = '<div class="space-y-3 max-h-96 overflow-y-auto">';
-        
-        if (Object.keys(STUDY_TOOLS.bookmarks).length === 0) {
-            bookmarksHtml += '<p class="text-gray-500 text-center py-4">No bookmarks yet. Start bookmarking resources!</p>';
+function shareCourse(courseId) {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this course',
+            text: 'I found this amazing course on our learning platform!',
+            url: window.location.origin + '/courses/' + courseId
+        }).catch(error => {
+            console.log('Error sharing:', error);
+            showToast('Sharing failed. Please try again.', 'error');
+        });
+    } else {
+        const shareUrl = window.location.origin + '/courses/' + courseId;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl)
+                .then(() => showToast('Course link copied to clipboard!', 'success'))
+                .catch(err => showToast('Failed to copy link. Please try again.', 'error'));
         } else {
-            for (const [id, bookmark] of Object.entries(STUDY_TOOLS.bookmarks)) {
-                bookmarksHtml += `
-                    <div class="bg-white border rounded p-3">
-                        <h4 class="font-semibold text-sm">${bookmark.title}</h4>
-                        <p class="text-xs text-gray-500">Type: ${bookmark.type}</p>
-                        <p class="text-xs text-gray-500">Saved: ${new Date(bookmark.timestamp).toLocaleDateString()}</p>
-                        <div class="flex justify-end mt-2">
-                            <button onclick="deleteBookmark('${id}')" class="text-red-600 text-xs">
-                                <i class="fas fa-trash"></i> Remove
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
+            const tempInput = document.createElement('input');
+            tempInput.value = shareUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('Course link copied to clipboard!', 'success');
         }
-        
-        bookmarksHtml += '</div>';
-        content.innerHTML = bookmarksHtml;
     }
 }
 
-function deleteBookmark(bookmarkId) {
-    delete STUDY_TOOLS.bookmarks[bookmarkId];
+function bookmarkModule(moduleId) {
+    STUDY_TOOLS.bookmarks[`module_${moduleId}`] = {
+        title: 'Module Bookmark',
+        type: 'module',
+        timestamp: new Date().toISOString()
+    };
     saveStudyTools();
-    showAllBookmarks();
-    showToast('Bookmark removed', 'success');
+    showToast('Module bookmarked!', 'success');
+}
+
+function createFlashcards(moduleId) {
+    showToast('Flashcards feature coming soon!', 'info');
 }
     </script>
 </body>
