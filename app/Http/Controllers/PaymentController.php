@@ -383,4 +383,67 @@ class PaymentController extends Controller
         $secret = config('services.tranzak.webhook_secret');
         return hash_hmac('sha256', $payload, $secret);
     }
+
+
+
+
+
+private function processRevenueSplit(Payment $payment)
+{
+    try {
+        $course = $payment->course;
+        $instructor = $course->instructor; // Assuming course belongs to instructor
+        
+        // Calculate shares (adjust percentages as needed)
+        $instructorShare = $payment->amount * 0.70; // 70% to instructor
+        $platformFee = $payment->amount * 0.30; // 30% to platform
+        
+        // Create earnings record
+        $earning = InstructorEarning::create([
+            'instructor_id' => $instructor->id,
+            'payment_id' => $payment->id,
+            'course_id' => $course->id,
+            'amount' => $instructorShare,
+            'platform_fee' => $platformFee,
+            'total_amount' => $payment->amount,
+            'currency' => $payment->currency,
+            'status' => InstructorEarning::STATUS_PROCESSED,
+            'processed_at' => now(),
+        ]);
+        
+        Log::info('Revenue split processed', [
+            'payment_id' => $payment->id,
+            'instructor_id' => $instructor->id,
+            'instructor_share' => $instructorShare,
+            'platform_fee' => $platformFee
+        ]);
+        
+        return $earning;
+        
+    } catch (\Exception $e) {
+        Log::error('Revenue split processing failed: ' . $e->getMessage(), [
+            'payment_id' => $payment->id
+        ]);
+        throw $e;
+    }
+}
+
+// Update the markAsCompleted method in Payment model to trigger revenue split
+public function markAsCompleted($paymentMethod = null, $responseData = null)
+{
+    $this->update([
+        'status' => self::STATUS_COMPLETED,
+        'payment_method' => $paymentMethod,
+        'tranzak_response' => $responseData,
+        'completed_at' => now()
+    ]);
+
+    // Trigger revenue split
+    if ($this->course && $this->course->instructor) {
+        app()->make(\App\Http\Controllers\PaymentController::class)
+             ->processRevenueSplit($this);
+    }
+
+    return $this;
+}
 }

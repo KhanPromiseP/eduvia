@@ -40,8 +40,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-900">
-                        {{ \App\Models\Course::whereIn('instructor_id', $instructors->pluck('id'))->count() }}
-
+                        {{ $totalCourses }}
                     </h3>
                     <p class="text-sm text-gray-500">Total Courses</p>
                 </div>
@@ -57,7 +56,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-900">
-                        {{ \App\Models\Instructor::sum('total_students') }}
+                        {{ number_format($totalStudents) }}
                     </h3>
                     <p class="text-sm text-gray-500">Total Students</p>
                 </div>
@@ -73,7 +72,7 @@
                 </div>
                 <div class="ml-4">
                     <h3 class="text-lg font-semibold text-gray-900">
-                        {{ number_format(\App\Models\Instructor::avg('rating') ?? 0, 1) }}/5.0
+                        {{ number_format($averageRating, 1) }}/5.0
                     </h3>
                     <p class="text-sm text-gray-500">Average Rating</p>
                 </div>
@@ -137,7 +136,7 @@
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
                                     @if($instructor->user->profile_path)
-                                        <img class="h-10 w-10 rounded-full object-cover" src="{{ asset('storage/' . $instructor->user->profile_path) }}" alt="">
+                                        <img class="h-10 w-10 rounded-full object-cover" src="{{ asset('storage/' . $instructor->user->profile_path) }}" alt="{{ $instructor->user->name }}">
                                     @else
                                         <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
                                             {{ strtoupper(substr($instructor->user->name, 0, 2)) }}
@@ -171,47 +170,78 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">
-                                {{ $instructor->user->courses->count() }}
+                                {{ $instructor->courses_count ?? $instructor->courses->count() }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ $instructor->courses->where('status', 'published')->count() }} published
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">
                                 {{ number_format($instructor->total_students) }}
                             </div>
+                            <div class="text-xs text-gray-500">
+                                {{ $instructor->enrollments_count ?? 0 }} enrollments
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex items-center">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        @if($i <= floor($instructor->rating))
-                                            <i class="fas fa-star text-yellow-400"></i>
-                                        @elseif($i - 0.5 <= $instructor->rating)
-                                            <i class="fas fa-star-half-alt text-yellow-400"></i>
-                                        @else
-                                            <i class="far fa-star text-yellow-400"></i>
-                                        @endif
-                                    @endfor
+                                    @php
+                                        $rating = $instructor->rating ?? 0;
+                                        $hasRating = $rating > 0;
+                                    @endphp
+                                    @if($hasRating)
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= floor($rating))
+                                                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                            @elseif($i - 0.5 <= $rating)
+                                                <i class="fas fa-star-half-alt text-yellow-400 text-sm"></i>
+                                            @else
+                                                <i class="far fa-star text-yellow-400 text-sm"></i>
+                                            @endif
+                                        @endfor
+                                    @else
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <i class="far fa-star text-gray-300 text-sm"></i>
+                                        @endfor
+                                    @endif
                                 </div>
                                 <span class="ml-2 text-sm text-gray-500">
-                                    ({{ $instructor->total_reviews }})
+                                    @if($hasRating)
+                                        ({{ $instructor->total_reviews ?? 0 }})
+                                    @else
+                                        (No reviews)
+                                    @endif
                                 </span>
                             </div>
+                            @if($hasRating)
+                            <div class="text-xs text-gray-500 mt-1">
+                                {{ number_format($rating, 1) }}/5.0
+                            </div>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                @if($instructor->is_verified) bg-green-100 text-green-800
-                                @else bg-yellow-100 text-yellow-800 @endif">
-                                {{ $instructor->is_verified ? 'Approved' : 'Pending' }}
-                            </span>
-                       
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                @if($instructor->isSuspended()) bg-red-100 text-red-800
-                                @elseif($instructor->isActive()) bg-green-100 text-green-800
-                                @else bg-yellow-100 text-yellow-800 @endif">
-                                @if($instructor->isSuspended()) Suspended
-                                @elseif($instructor->isActive()) Active
-                                @else Pending @endif
-                            </span>
+                            <div class="space-y-1">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    @if($instructor->is_verified) bg-green-100 text-green-800
+                                    @else bg-yellow-100 text-yellow-800 @endif">
+                                    {{ $instructor->is_verified ? 'Verified' : 'Unverified' }}
+                                </span>
+                           
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    @if($instructor->isSuspended()) bg-red-100 text-red-800
+                                    @elseif($instructor->isActive()) bg-green-100 text-green-800
+                                    @else bg-yellow-100 text-yellow-800 @endif">
+                                    @if($instructor->isSuspended()) 
+                                        Suspended
+                                    @elseif($instructor->isActive()) 
+                                        Active
+                                    @else 
+                                        Inactive
+                                    @endif
+                                </span>
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end space-x-2">
@@ -227,14 +257,13 @@
                                     Edit
                                 </a>
                                 
-                               @if($instructor)
-                                    @if(!$instructor->isSuspended())
-                                <button onclick="openSuspendModal({{ $instructor->id }})"
-                                        class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition">
+                                @if(!$instructor->isSuspended())
+                                    <button onclick="openSuspendModal({{ $instructor->id }})"
+                                            class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition">
                                         <i class="fas fa-ban mr-1"></i>
                                         Suspend
                                     </button>
-                                    @else
+                                @else
                                     <form action="{{ route('admin.instructors.reactivate', $instructor) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" 
@@ -243,11 +272,11 @@
                                             Reactivate
                                         </button>
                                     </form>
-                                    <span class="text-gray-500 bg-gray-100 px-3 py-1 rounded-md text-sm" title="Suspended on {{ $instructor->suspended_at->format('M j, Y') }}">
+                                    <span class="text-gray-500 bg-gray-100 px-3 py-1 rounded-md text-sm" 
+                                          title="Suspended on {{ $instructor->suspended_at?->format('M j, Y') ?? 'Unknown date' }}">
                                         <i class="fas fa-ban mr-1"></i>
                                         Suspended
                                     </span>
-                                    @endif
                                 @endif
                             </div>
                         </td>
@@ -290,27 +319,26 @@
                 </div>
                 <div class="mt-4">
                     <form id="suspendForm" method="POST">
-    @csrf
-    <div class="mb-4">
-        <label for="suspend_reason" class="block text-sm font-medium text-gray-700 mb-1">
-            Reason for Suspension *
-        </label>
-        <textarea name="reason" id="suspend_reason" rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-            placeholder="Provide reason for suspension..." required></textarea>
-    </div>
-    <div class="flex justify-center space-x-4">
-        <button type="button" onclick="closeSuspendModal()"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">
-            Cancel
-        </button>
-        <button type="submit"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
-            Suspend Instructor
-        </button>
-    </div>
-</form>
-
+                        @csrf
+                        <div class="mb-4">
+                            <label for="suspend_reason" class="block text-sm font-medium text-gray-700 mb-1">
+                                Reason for Suspension *
+                            </label>
+                            <textarea name="reason" id="suspend_reason" rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                                placeholder="Provide reason for suspension..." required></textarea>
+                        </div>
+                        <div class="flex justify-center space-x-4">
+                            <button type="button" onclick="closeSuspendModal()"
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+                                Suspend Instructor
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

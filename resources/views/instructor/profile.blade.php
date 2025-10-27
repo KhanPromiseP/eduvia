@@ -458,7 +458,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-2xl font-bold text-gray-900">Student Reviews For instructor <span class="text-indigo-800 font-bold">{{ $instructor->user->name }}</span>. </h3>
-                        @auth
+                        {{-- @auth --}}
                             @if(auth()->id() !== $instructor->user_id)
                                 @php
                                     $userId = auth()->id();
@@ -489,14 +489,21 @@
                                 <button class="review-btn bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-200">
                                     Write a Review
                                 </button>
-                                @elseif(!$hasEnrolled)
-                                <button class="bg-gray-400 text-white px-4 py-2 rounded-lg font-semibold cursor-not-allowed" 
-                                        title="You need to enroll in a course first">
-                                    Write a Review
+                              @elseif(!$hasEnrolled)
+                            <div class="flex flex-col items-start space-y-1">
+                                <button 
+                                    class="bg-gray-400 text-white px-4 py-2 rounded-lg font-semibold cursor-not-allowed" 
+                                    title="You need to enroll in a course first">
+                                    Review instructor
                                 </button>
-                                @endif
+                                <p class="text-orange-500 text-xs italic mt-1">
+                                    You need to enroll in this instructor’s course first
+                                </p>
+                            </div>
+                        @endif
+
                             @endif
-                        @endauth
+                        {{-- @endauth --}}
                     </div>
 
                     @if($reviews->count() > 0)

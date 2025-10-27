@@ -6,11 +6,11 @@
         <!-- Progress Bar -->
         <div class="mb-8">
             <div class="flex items-center justify-between mb-2">
-                <div class="text-sm font-medium text-blue-600">Step 4 of 4</div>
+                <div class="text-sm font-medium text-blue-600">Step 4 of 5</div>
                 <div class="text-sm text-gray-500">Document Verification</div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full" style="width: 100%"></div>
+                <div class="bg-blue-600 h-2 rounded-full" style="width: 80%"></div>
             </div>
         </div>
 

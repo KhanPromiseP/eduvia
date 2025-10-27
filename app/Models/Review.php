@@ -14,13 +14,18 @@ class Review extends Model
         'course_id',
         'rating',
         'comment',
+        'instructor_response',
+        'response_date',
         'is_verified',
-        'is_approved'
+        'is_approved',
+        'is_helpful'
     ];
 
     protected $casts = [
         'is_verified' => 'boolean',
         'is_approved' => 'boolean',
+        'is_helpful' => 'boolean',
+        'response_date' => 'datetime',
         'created_at' => 'datetime',
     ];
 
@@ -49,5 +54,26 @@ class Review extends Model
     public function scopeWithHighRating($query, $minRating = 4)
     {
         return $query->where('rating', '>=', $minRating);
+    }
+
+    public function scopeWithResponse($query)
+    {
+        return $query->whereNotNull('instructor_response');
+    }
+
+    public function scopeWithoutResponse($query)
+    {
+        return $query->whereNull('instructor_response');
+    }
+
+    // Accessors
+    public function getHasResponseAttribute()
+    {
+        return !is_null($this->instructor_response);
+    }
+
+    public function getResponseAgeAttribute()
+    {
+        return $this->response_date ? $this->response_date->diffForHumans() : null;
     }
 }

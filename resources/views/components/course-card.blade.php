@@ -41,7 +41,7 @@
                 <div class="bg-white/95 rounded-lg p-3 shadow-sm">
                     <div class="flex justify-between text-xs font-medium text-gray-700 mb-2">
                         <span>Your Progress</span>
-                        <span>{{ auth()->user()->getCourseProgress($course) }}%</span>
+                        {{-- <span>{{ auth()->user()->getCourseProgress($course) }}%</span> --}}
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-1.5">
                         <div class="bg-green-500 h-1.5 rounded-full transition-all duration-500" 

@@ -44,6 +44,38 @@ class Course extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+     /**
+     * Relationship with user courses (enrollments)
+     */
+    public function userCourses()
+    {
+        return $this->hasMany(UserCourse::class);
+    }
+
+    /**
+     * Relationship with payments through user courses
+     */
+    public function payments()
+    {
+        return $this->hasManyThrough(Payment::class, UserCourse::class, 'course_id', 'id', 'id', 'payment_id');
+    }
+
+     /**
+     * Relationship with instructor earnings
+     */
+    public function instructorEarnings()
+    {
+        return $this->hasMany(InstructorEarning::class, 'course_id');
+    }
+
+    /**
+     * Scope for courses created by a specific user
+     */
+    public function scopeCreatedBy($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewed_by');

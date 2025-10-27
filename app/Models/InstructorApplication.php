@@ -13,6 +13,14 @@ class InstructorApplication extends Model
 {
     use HasFactory;
 
+
+    const STATUS_PENDING = 'pending';
+    const STATUS_DOCUMENTS_UPLOADED = 'uploaded';
+    const STATUS_UNDER_REVIEW = 'under_review';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+
+    
     protected $fillable = [
         'user_id','bio','expertise','linkedin_url','website_url',
         'video_intro','status','reviewed_by','review_notes'

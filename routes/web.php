@@ -31,6 +31,9 @@ use App\Http\Controllers\Admin\AdminInstructorController;
 use App\Http\Controllers\Instructor\InstructorCourseController;
 use App\Http\Controllers\Instructor\DocumentationController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\PayoutController;
+use App\Http\Controllers\Admin\AdminIncomeController;
+
 
 
 
@@ -109,6 +112,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile/instructor', [ProfileController::class, 'updateInstructorProfile'])->name('instructor.profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/detect-location', [ProfileController::class, 'detectLocation'])->name('profile.detect-location');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('income')->group(function () {
+    Route::get('/', [AdminIncomeController::class, 'index'])->name('admin.income.index');
+    Route::get('/export', [AdminIncomeController::class, 'exportReport'])->name('admin.income.export');
 });
 
 Route::middleware(['auth', 'role:admin,instructor'])
@@ -227,16 +235,53 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/instructor/apply/step3', [InstructorController::class, 'storeStep3'])->name('instructor.apply.step3.store');
     Route::get('/instructor/apply/step4', [InstructorController::class, 'step4'])->name('instructor.apply.step4');
     Route::post('/instructor/apply/step4', [InstructorController::class, 'storeStep4'])->name('instructor.apply.step4.store');
+    Route::get('/instructor/apply/step5', [InstructorController::class, 'step5'])->name('instructor.apply.step5');
+    Route::post('/instructor/apply/step5', [InstructorController::class, 'storeStep5'])->name('instructor.apply.step5.store');
     Route::get('/instructor/application-status', [InstructorController::class, 'status'])->name('instructor.application.status');
-    
+
+    // Payout management routes
+    Route::get('/instructor/payout/setup', [PayoutController::class, 'showPayoutSetup'])->name('instructor.payout.setup');
+    Route::post('/instructor/payout/setup', [PayoutController::class, 'setupPayout'])->name('instructor.payout.setup.store');
+
+
+        
     // Instructor Dashboard (for approved instructors)
     Route::middleware(['role:instructor'])->group(function () {
         Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])->name('instructor.dashboard');
         Route::get('/instructor/students', [InstructorController::class, 'students'])->name('instructor.students');
         Route::get('/instructor/students/{id}', [InstructorController::class, 'studentDetail'])->name('instructor.students.detail');
         Route::get('/instructor/earnings', [InstructorController::class, 'earnings'])->name('instructor.earnings');
-    });
+
+        
+        });
 });
+
+
+// Instructor management routes
+Route::middleware(['auth', 'verified'])->prefix('instructor')->name('instructor.')->group(function () {
+    // ... existing routes ...
+    
+    // Reviews management
+    Route::get('/reviews', [InstructorController::class, 'reviews'])->name('reviews');
+    Route::post('/reviews/{review}/reply', [InstructorController::class, 'replyToReview'])->name('reviews.reply');
+    Route::post('/reviews/report', [InstructorController::class, 'reportReview'])->name('reviews.report');
+    
+    // Followers management
+    Route::get('/followers', [InstructorController::class, 'followers'])->name('followers');
+    Route::post('/followers/message', [InstructorController::class, 'messageFollower'])->name('followers.message');
+    
+    // Profile
+    // Route::get('/profile', [InstructorController::class, 'profile'])->name('profile');
+    // Route::put('/profile', [InstructorController::class, 'updateProfile'])->name('profile.update');
+});
+
+// // Instructor review management routes
+// Route::middleware(['auth', 'verified'])->prefix('instructor')->name('instructor.')->group(function () {
+//     Route::get('/reviews', [InstructorController::class, 'reviews'])->name('reviews');
+//     Route::post('/reviews/{review}/reply', [InstructorController::class, 'replyToReview'])->name('reviews.reply');
+//     Route::post('/reviews/report', [InstructorController::class, 'reportReview'])->name('reviews.report');
+// });
+
 
 // Admin Instructor Management Routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
@@ -599,6 +644,10 @@ Route::post('/instructor/review', [InstructorController::class, 'submitReview'])
 Route::post('/instructor/review/update', [InstructorController::class, 'updateReview'])->name('instructor.review.update');
 Route::delete('/instructor/review/{review}', [InstructorController::class, 'deleteReview'])->name('instructor.review.delete');
 Route::post('/instructor/contact', [InstructorController::class, 'contact'])->name('instructor.contact');
+
+// Add these routes if they don't exist
+Route::get('/instructor/students/{id}', [InstructorController::class, 'studentDetail'])->name('instructor.students.detail');
+Route::get('/instructor/reviews', [InstructorController::class, 'reviews'])->name('instructor.reviews');
 
 require __DIR__.'/auth.php';
 

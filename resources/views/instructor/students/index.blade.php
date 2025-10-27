@@ -9,6 +9,22 @@
         </div>
     </div>
 
+    <!-- Debug Info (To be Remove in production) -->
+    {{-- @if(env('APP_DEBUG'))
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-info-circle text-yellow-500 mr-2"></i>
+            <span class="font-medium">Debug Info:</span>
+        </div>
+        <div class="mt-2 text-sm">
+            <p>Instructor ID: {{ $instructor->id }}</p>
+            <p>Courses I Created: {{ \App\Models\Course::where('user_id', Auth::id())->count() }}</p>
+            <p>Courses I'm Enrolled In: {{ Auth::user()->courses()->count() }}</p>
+            <p>Students Found: {{ $students->count() }}</p>
+        </div>
+    </div>
+    @endif --}}
+
     <!-- Search and Filters -->
     <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div class="flex flex-col md:flex-row gap-4">
@@ -19,8 +35,8 @@
             </div>
             <div class="flex space-x-2">
                 <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">All Courses</option>
-                    @foreach(Auth::user()->courses as $course)
+                    <option value="">All My Courses</option>
+                    @foreach(\App\Models\Course::where('user_id', Auth::id())->get() as $course)
                         <option value="{{ $course->id }}">{{ $course->title }}</option>
                     @endforeach
                 </select>
@@ -44,10 +60,10 @@
                                 Contact
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Courses Enrolled
+                                My Courses Enrolled
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Last Activity
+                                Enrollment Date
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
@@ -57,8 +73,14 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($students as $student)
                             @php
-                                $latestEnrollment = $student->userCourses->sortByDesc('purchased_at')->first();
-                                $enrolledCourses = $student->userCourses->pluck('course.title')->toArray();
+                                // Get courses created by this instructor
+                                $instructorCourseIds = \App\Models\Course::where('user_id', Auth::id())->pluck('id');
+                                
+                                // Get enrollments in THIS instructor's created courses only
+                                $myEnrollments = $student->userCourses->whereIn('course_id', $instructorCourseIds);
+                                
+                                $latestEnrollment = $myEnrollments->sortByDesc('purchased_at')->first();
+                                $enrolledCourses = $myEnrollments->pluck('course.title')->toArray();
                             @endphp
                             <tr class="hover:bg-gray-50 transition">
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -93,7 +115,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="text-sm text-gray-900">
-                                        <span class="font-semibold">{{ $student->user_courses_count }}</span> courses
+                                        <span class="font-semibold">{{ count($myEnrollments) }}</span> of my courses
                                     </div>
                                     @if(count($enrolledCourses) > 0)
                                         <div class="text-xs text-gray-500 mt-1">
@@ -111,7 +133,7 @@
                                             {{ $latestEnrollment->purchased_at->diffForHumans() }}
                                         </div>
                                     @else
-                                        <span class="text-gray-400">No activity</span>
+                                        <span class="text-gray-400">No enrollment</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -159,9 +181,12 @@
                         </div>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Avg Courses per Student</p>
+                        <p class="text-sm font-medium text-gray-600">Avg My Courses per Student</p>
                         <p class="text-lg font-semibold text-gray-900">
-                            {{ number_format($students->avg('user_courses_count'), 1) }}
+                            {{ $students->count() > 0 ? number_format($students->sum(function($student) {
+                                $instructorCourseIds = \App\Models\Course::where('user_id', Auth::id())->pluck('id');
+                                return $student->userCourses->whereIn('course_id', $instructorCourseIds)->count();
+                            }) / $students->count(), 1) : 0 }}
                         </p>
                     </div>
                 </div>
@@ -178,7 +203,10 @@
                         <p class="text-sm font-medium text-gray-600">Active This Month</p>
                         <p class="text-lg font-semibold text-gray-900">
                             {{ $students->filter(function($student) {
-                                return $student->userCourses->contains('purchased_at', '>=', now()->subMonth());
+                                $instructorCourseIds = \App\Models\Course::where('user_id', Auth::id())->pluck('id');
+                                return $student->userCourses
+                                    ->whereIn('course_id', $instructorCourseIds)
+                                    ->contains('purchased_at', '>=', now()->subMonth());
                             })->count() }}
                         </p>
                     </div>
@@ -193,14 +221,14 @@
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">No Students Yet</h3>
                 <p class="text-gray-500 mb-6">
-                    You don't have any students enrolled in your courses yet. 
+                    You don't have any students enrolled in the courses you've created. 
                     Share your courses to attract students!
                 </p>
                 <div class="space-y-3">
                     <a href="{{ route('instructor.courses.index') }}" 
                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
                         <i class="fas fa-book mr-2"></i>
-                        View My Courses
+                        View My Created Courses
                     </a>
                     <a href="{{ route('instructor.courses.create') }}" 
                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 ml-3">

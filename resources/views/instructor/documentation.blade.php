@@ -1,145 +1,235 @@
 @extends('layouts.admin')
 
 @section('content')
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eduvia Instructor Documentation</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            --navbar-height: 72px;
+
+   <style>
+    :root {
+        --navbar-height: 72px;
+    }
+    
+    .doc-section {
+        line-height: 1.7;
+        margin-bottom: 4rem;
+        scroll-margin-top: 120px;
+    }
+    
+    .doc-section h2 {
+        font-size: 1.875rem;
+        font-weight: bold;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+        margin-top: 3rem;
+        border-bottom: 3px solid #e5e7eb;
+        padding-bottom: 0.75rem;
+    }
+    
+    .doc-section h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .doc-section p {
+        margin-bottom: 1.25rem;
+        color: #4b5563;
+        line-height: 1.8;
+    }
+    
+    .nav-item.active {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+        color: white !important;
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .nav-item.active i:first-child {
+        color: white !important;
+    }
+    
+    /* Smooth transitions */
+    .nav-item {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Custom scrollbar for sidebar */
+    #doc-nav::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #doc-nav::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+    
+    #doc-nav::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    #doc-nav::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    
+    /* Collapsible sections */
+    .collapsible-section > div:first-child {
+        cursor: pointer;
+    }
+    
+    .collapsible-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+    
+    .collapsible-content.open {
+        max-height: 2000px;
+    }
+    
+    .collapsible-arrow {
+        transition: transform 0.3s ease;
+    }
+    
+    .collapsible-section.open .collapsible-arrow {
+        transform: rotate(90deg);
+    }
+    
+    /* Print styles */
+    @media print {
+        .no-print {
+            display: none !important;
         }
         
         .doc-section {
-            line-height: 1.7;
-            margin-bottom: 4rem;
-            scroll-margin-top: 120px;
+            break-inside: avoid;
         }
-        
-        .doc-section h2 {
-            font-size: 1.875rem;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 1.5rem;
-            margin-top: 3rem;
-            border-bottom: 3px solid #e5e7eb;
-            padding-bottom: 0.75rem;
-        }
-        
-        .doc-section h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .doc-section p {
-            margin-bottom: 1.25rem;
-            color: #4b5563;
-            line-height: 1.8;
-        }
-        
-        .nav-item.active {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
-            color: white !important;
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        
-        .nav-item.active i:first-child {
-            color: white !important;
-        }
-        
-        /* Smooth transitions */
-        .nav-item {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Custom scrollbar for sidebar */
-        #doc-nav::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        #doc-nav::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 3px;
-        }
-        
-        #doc-nav::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        
-        #doc-nav::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        /* Sidebar styles */
+    }
+
+    /* FIXED SIDEBAR STICKY STYLES - GUARANTEED TO WORK */
+    .sidebar-container {
+        position: relative;
+        height: fit-content;
+    }
+
+    /* Desktop Sticky Behavior */
+    @media (min-width: 1024px) {
         .sidebar {
-            transition: transform 0.3s ease-in-out;
+            position: sticky;
+            top: 32px; /* 20px + navbar offset */
+            height: fit-content;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
             z-index: 40;
         }
-        
-        .sidebar-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 30;
+
+        .sidebar-scroll {
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+        }
+
+        /* Ensure parent containers allow sticky */
+        .flex-col.lg\:flex-row {
+            align-items: flex-start;
+            position: relative;
+        }
+    }
+
+    /* Mobile Behavior */
+    @media (max-width: 1023px) {
+        .sidebar {
+            position: fixed;
+            transform: translateX(-100%);
+            top: var(--navbar-height);
+            left: 0;
+            height: calc(100vh - var(--navbar-height));
+            width: 320px;
+            overflow-y: auto;
+            z-index: 50;
         }
         
-        @media (max-width: 1023px) {
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-scroll {
+            max-height: calc(100vh - var(--navbar-height) - 120px);
+            overflow-y: auto;
+        }
+    }
+
+    /* Safari compatibility */
+    @supports (position: -webkit-sticky) {
+        @media (min-width: 1024px) {
             .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                top: var(--navbar-height);
-                left: 0;
-                height: calc(100vh - var(--navbar-height));
-                width: 320px;
-                overflow-y: auto;
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
+                position: -webkit-sticky;
             }
         }
-        
-        /* Collapsible sections */
-        .collapsible-section > div:first-child {
-            cursor: pointer;
+    }
+
+    /* Sidebar overlay for mobile */
+    .sidebar-overlay {
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 30;
+    }
+
+    /* Ensure main content area has proper positioning */
+    .main-content {
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Make sure the main container has enough height */
+    .min-h-screen {
+        min-height: 100vh;
+        position: relative;
+    }
+
+
+    /* Add this to your existing CSS */
+.min-h-screen {
+    position: relative;
+    min-height: 100vh;
+}
+
+.flex-col.lg\:flex-row {
+    position: relative;
+    align-items: flex-start;
+}
+
+.sidebar-container {
+    position: relative;
+    height: fit-content;
+}
+
+/* Enhanced sticky behavior with better browser support */
+@media (min-width: 1024px) {
+    .sidebar {
+        position: sticky;
+        top: 100px; /* Increased from 32px for better spacing */
+        height: fit-content;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        z-index: 40;
+    }
+    
+    /* Ensure the parent flex container has proper alignment */
+    .flex-col.lg\:flex-row {
+        align-items: flex-start;
+    }
+}
+
+/* Add this for additional browser support */
+@supports (position: sticky) or (position: -webkit-sticky) {
+    @media (min-width: 1024px) {
+        .sidebar {
+            position: -webkit-sticky;
+            position: sticky;
         }
-        
-        .collapsible-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        
-        .collapsible-content.open {
-            max-height: 2000px; /* Large enough to contain all items */
-        }
-        
-        .collapsible-arrow {
-            transition: transform 0.3s ease;
-        }
-        
-        .collapsible-section.open .collapsible-arrow {
-            transform: rotate(90deg);
-        }
-        
-        /* Print styles */
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            
-            .doc-section {
-                break-inside: avoid;
-            }
-        }
-    </style>
-</head>
-<body class="bg-gray-50">
+    }
+}
+</style>
+
     <!-- Navbar (simulated) -->
     <nav class="left-5  fixed top-[70px]">
         <div class="flex justify-between items-center">
@@ -176,24 +266,24 @@
                 </div>
             </div>
 
-            <div class="flex flex-col lg:flex-row gap-8">
-                <!-- Enhanced Sidebar -->
-                <div class="lg:w-80 flex-shrink-0">
-                    <div class="sidebar lg:sticky lg:top-[calc(var(--navbar-height)+8px)] bg-white rounded-2xl shadow-lg border border-gray-200">
-                        <!-- Search Section -->
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="relative">
-                                <input type="text" 
-                                       placeholder="Search documentation..." 
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                       id="doc-search">
-                                <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
-                            </div>
+          <div class="flex flex-col lg:flex-row gap-8 items-start">
+    <!-- Enhanced Sidebar with Sticky Behavior -->
+    <div class="lg:w-80 flex-shrink-0 sidebar-container">
+        <div class="sidebar bg-white rounded-2xl shadow-lg border border-gray-200">
+                    <!-- Search Section -->
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="relative">
+                            <input type="text" 
+                                placeholder="Search documentation..." 
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                id="doc-search">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
                         </div>
+                    </div>
 
-                        <!-- Navigation -->
-                        <nav id="doc-nav" class="p-4 max-h-[calc(100vh-var(--navbar-height)-200px)] overflow-y-auto">
-                            <div class="space-y-1">
+                    <!-- Navigation -->
+                    <nav id="doc-nav" class="p-4 sidebar-scroll">
+                        <div class="space-y-1">
                                 <!-- Getting Started Section -->
                                 <div class="mb-4 collapsible-section">
                                     <div class="flex items-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg mb-2 cursor-pointer">
@@ -844,5 +934,5 @@
         // Initialize first section as active
         document.querySelector('[data-target="account-setup"]').classList.add('active');
     </script>
-</body>
+
 @endsection

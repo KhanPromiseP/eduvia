@@ -194,6 +194,13 @@
                     Instructors
                 </a>
 
+                <a href="{{ route('admin.income.index') }}" 
+                class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 
+                {{ Route::is('admin.income.*') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="bi bi-graph-up mr-3 text-indigo-300"></i>
+                    Income Management
+                </a>
+
                 @php
                     $pendingReviewCount = \App\Models\Course::where('status', 'pending_review')->count();
                 @endphp
@@ -215,6 +222,14 @@
 
                 {{-- Instructor Menu --}}
                 @if(auth()->user()->hasRole('instructor'))
+
+                    @php
+                        // Get instructor data if user is an instructor
+                        $instructor = null;
+                        if (Auth::check() && Auth::user()->hasRole('instructor')) {
+                            $instructor = \App\Models\Instructor::where('user_id', Auth::id())->first();
+                        }
+                    @endphp
 
                 {{-- <a href="{{ route('instructor.dashboard') }}" 
                    class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 {{ Route::is('admin.dashboard') ? 'bg-indigo-700 active' : '' }}">
@@ -251,11 +266,40 @@
                     Earnings
                 </a>
 
+                <a href="{{ route('instructor.payout.setup') }}" 
+                class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 
+                {{ Route::is('instructor.payout.setup') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="fas fa-wallet mr-3 text-indigo-300"></i>
+                    Payout Setup
+                </a>
+
+                <a href="{{ route('instructor.reviews') }}" 
+                class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 
+                {{ Route::is('instructor.reviews*') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="fas fa-star mr-3 text-indigo-300"></i>
+                    Reviews
+                </a>
+
+                <a href="{{ route('instructor.followers') }}" 
+                class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 
+                {{ Route::is('instructor.followers*') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="fas fa-users mr-3 text-indigo-300"></i>
+                    Followers
+                </a>
+
+
                 <a href="{{ route('profile.edit') }}" 
                 class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 
                 {{ Route::is('profile.edit') ? 'bg-indigo-700 active' : '' }}">
                     <i class="bi bi-person-lines-fill mr-3 text-indigo-300"></i>
-                    Profile
+                    Edit Profile
+                </a>
+
+                <a href="{{ route('instructor.profile', $instructor->user_id) }}" 
+                class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-indigo-700/50 
+                {{ Route::is('instructor.profile') ? 'bg-indigo-700 active' : '' }}">
+                    <i class="bi bi-person-circle mr-3 text-indigo-300"></i>
+                    Public Profile
                 </a>
 
                 {{-- <a href="{{ route('instructor.courses.manage') }}" class="nav-link">
